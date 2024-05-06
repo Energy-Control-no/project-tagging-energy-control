@@ -3,13 +3,15 @@ import {
   Box,
   Flex,
   Text,
-  Button,
   VStack,
   Heading,
   Spinner,
-  useToast
+  useToast,
+  Image,
+  SimpleGrid
 } from '@chakra-ui/react';
-import { FaPrint } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 const fetchProjects = async () => {
   const response = await fetch('https://wyq0d1.buildship.run/fieldwire', {
@@ -29,6 +31,7 @@ const Index = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -48,22 +51,26 @@ const Index = () => {
   }, []);
 
   return (
-    <Flex direction="column" align="center" justify="center" p={10}>
-      <Heading mb={4}>Energy Control Project Tagging System</Heading>
-      <VStack spacing={5}>
-        {loading ? (
-          <Spinner />
-        ) : projects.length > 0 ? (
-          projects.map(project => (
-            <Button leftIcon={<FaPrint />} key={project.id} onClick={() => console.log('Print labels for:', project.name)}>
-              {project.name}
-            </Button>
-          ))
-        ) : (
-          <Text>No projects available.</Text>
-        )}
-      </VStack>
-    </Flex>
+        <SimpleGrid columns={3} spacing={5}>
+          {loading ? (
+            <Spinner />
+          ) : projects.length > 0 ? (
+            projects.map(project => (
+              <Box key={project.id} p={4} borderRadius="md" boxShadow="md" onClick={() => navigate(`/project/${project.id}`)}>
+                <Flex justifyContent="space-between">
+                  <Text fontWeight="bold">{project.name}</Text>
+                  <Box width="20px" height="20px" borderRadius="50%" bg={project.color} />
+                </Flex>
+                <Text fontSize="sm">Created: {format(new Date(project.created_at), 'PPP')}</Text>
+                {project.has_logo && project.logo_url && (
+                  <Image src={project.logo_url} alt={`${project.name} Logo`} htmlWidth="120px" htmlHeight="120px" />
+                )}
+              </Box>
+            ))
+          ) : (
+            <Text>No projects available.</Text>
+          )}
+        </SimpleGrid>
   );
 };
 
