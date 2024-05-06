@@ -7,7 +7,9 @@ import {
   VStack,
   Heading,
   Spinner,
-  useToast
+  useToast,
+  SimpleGrid,
+  Image
 } from '@chakra-ui/react';
 import { FaPrint } from 'react-icons/fa';
 
@@ -54,11 +56,20 @@ const Index = () => {
         {loading ? (
           <Spinner />
         ) : projects.length > 0 ? (
-          projects.map(project => (
-            <Button leftIcon={<FaPrint />} key={project.id} onClick={() => console.log('Print labels for:', project.name)}>
-              {project.name}
-            </Button>
-          ))
+          <SimpleGrid columns={{ sm: 1, md: 2, lg: 3 }} spacing={10}>
+            {projects.map(project => (
+              <Box key={project.id} bg={project.color} p={5} shadow="md" borderWidth="1px" borderRadius="lg">
+                <Flex direction="column" align="center" justify="center">
+                  {project.logo && <Image src={project.logo} alt="Project logo" boxSize="50px" mb={4} />}
+                  <Text fontWeight="bold" mb={2}>{project.name}</Text>
+                  <Text fontSize="sm">Created at: {new Date(project.created_at).toLocaleDateString()}</Text>
+                  <Button leftIcon={<FaPrint />} mt={4} onClick={() => console.log('Print labels for:', project.name)}>
+                    Print Labels
+                  </Button>
+                </Flex>
+              </Box>
+            ))}
+          </SimpleGrid>
         ) : (
           <Text>No projects available.</Text>
         )}
