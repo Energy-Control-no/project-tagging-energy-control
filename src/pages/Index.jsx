@@ -18,7 +18,11 @@ const fetchProjects = async () => {
   if (!response.ok) {
     throw new Error('Failed to fetch projects');
   }
-  return response.json();
+  const data = await response.json();
+  if (!data.projects || !Array.isArray(data.projects)) {
+    throw new Error('No projects data available or data is not in expected format');
+  }
+  return data;
 };
 
 const Index = () => {
@@ -33,7 +37,7 @@ const Index = () => {
       setLoading(false);
     }).catch(error => {
       toast({
-        title: 'Error',
+        title: 'Error fetching projects',
         description: error.message,
         status: 'error',
         duration: 9000,
@@ -49,12 +53,14 @@ const Index = () => {
       <VStack spacing={5}>
         {loading ? (
           <Spinner />
-        ) : (
+        ) : projects.length > 0 ? (
           projects.map(project => (
             <Button leftIcon={<FaPrint />} key={project.id} onClick={() => console.log('Print labels for:', project.name)}>
               {project.name}
             </Button>
           ))
+        ) : (
+          <Text>No projects available.</Text>
         )}
       </VStack>
     </Flex>
