@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box, Flex, Image, Heading } from '@chakra-ui/react';
 import Index from './pages/Index';
 import ProjectDetails from './pages/ProjectDetails';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/project/:projectId" element={<ProjectDetails />} />
+            <Route path="/login" element={<Login />} />
           </Routes>
         </Box>
       </Box>
