@@ -54,7 +54,7 @@ const ProjectDetails = () => {
   const exportToCSV = () => {
     const selectedTaskData = tasks.filter(task => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
-    const csvContent = selectedTaskData.map(task => `"${task.name || 'Unnamed Task'}"`).join("\n");
+    const csvContent = selectedTaskData.map(task => `"#${task.sequence_number} - ${task.name || 'Unnamed Task'}"`).join("\n");
     const csvData = csvHeader + csvContent;
 
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
@@ -98,7 +98,7 @@ const ProjectDetails = () => {
       <VStack align="stretch" spacing={4}>
         {tasks.map(task => (
           <Checkbox key={task.id} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)}>
-            {task.name || 'Unnamed Task'} - Created at: {new Date(task.created_at).toLocaleDateString()}
+            #{task.sequence_number} - {task.name || 'Unnamed Task'} - Created at: {new Date(task.created_at).toLocaleDateString()}
           </Checkbox>
         ))}
       </VStack>
