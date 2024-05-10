@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon } from '@chakra-ui/react';
+import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text } from '@chakra-ui/react';
 import { FaPrint } from 'react-icons/fa';
+import Html5QrcodePlugin from '/src/plugins/Html5QrcodePlugin.jsx';
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -10,6 +11,9 @@ const ProjectDetails = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
+  const [decodedText, setDecodedText] = useState(null);
 
   useEffect(() => {
     console.log('Fetching tasks for project:', projectId);
@@ -68,6 +72,25 @@ const ProjectDetails = () => {
     document.body.removeChild(link);
   };
 
+  const openModal = (task) => {
+    setSelectedTaskForModal(task);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const onNewScanResult = (decodedText, decodedResult) => {
+    const parts = decodedText.split(/gs\/(.*?)\?id/);
+    const parsedText = {
+      before: parts[0],
+      serialNumber: parts[1],
+      after: parts[2]
+    };
+    setDecodedText(parsedText.serialNumber);
+  };
+
   if (error) {
     return (
       <Alert status="error">
@@ -97,11 +120,34 @@ const ProjectDetails = () => {
       </Box>
       <VStack align="stretch" spacing={4}>
         {tasks.map(task => (
-          <Checkbox key={task.id} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)}>
-            #{task.sequence_number} - {task.name || 'Unnamed Task'} - Created at: {new Date(task.created_at).toLocaleDateString()}
-          </Checkbox>
+          <Box key={task.id} display="flex" alignItems="center">
+            <Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
+            <Box ml={2} onClick={() => openModal(task)} cursor="pointer">
+              #{task.sequence_number} - {task.name || 'Unnamed Task'} - Created at: {new Date(task.created_at).toLocaleDateString()}
+            </Box>
+          </Box>
         ))}
       </VStack>
+      <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Linking Task {selectedTaskForModal?.name}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {/* <video autoPlay playsInline muted></video> */}
+            <Html5QrcodePlugin
+                fps={10}
+                qrbox={250}
+                disableFlip={false}
+                qrCodeSuccessCallback={onNewScanResult}
+                isCameraActive={isModalOpen}
+            />
+            <Center mt={4}>
+              <Text>{decodedText}</Text>
+            </Center>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
