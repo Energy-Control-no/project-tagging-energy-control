@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover } from '@chakra-ui/react';
+import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup } from '@chakra-ui/react';
 import { FaPrint } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 
@@ -96,6 +96,14 @@ const ProjectDetails = () => {
     document.body.removeChild(link);
   };
 
+  const linkDevice = () => {
+    // Placeholder function for linking device to tag
+    console.log('Linking device and tag ...');
+    console.log('Device serial number:', serialNumber);
+    console.log('Tag sequence number:', selectedTaskForModal.sequence_number);
+    console.log('Tag ID:', selectedTaskForModal.id);
+  };
+
   const openModal = (task) => {
     setSelectedTaskForModal(task);
     setIsModalOpen(true);
@@ -103,6 +111,7 @@ const ProjectDetails = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setSerialNumber(null); // Reset serialNumber state to null
   };
 
   const onNewScanResult = (decodedText, decodedResult) => {
@@ -162,8 +171,14 @@ const ProjectDetails = () => {
               qrCodeSuccessCallback={onNewScanResult}
             />
           </ModalBody>
-          <ModalFooter>
-            <Text>Serial number: {serialNumber || 'No QR code detected'}</Text>
+          <ModalFooter justifyContent="center">
+            <Text fontWeight="bold" fontSize="xl" mb={2} textAlign="center" width="100%">Serial number: {serialNumber || 'No QR code detected'}</Text>
+          </ModalFooter>
+          <ModalFooter justifyContent="center">
+            <ButtonGroup width="100%" maxW="420px">
+              <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px">Enter manually</Button>
+              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber}>Link</Button>
+            </ButtonGroup>
           </ModalFooter>
         </ModalContent>
       </Modal>
