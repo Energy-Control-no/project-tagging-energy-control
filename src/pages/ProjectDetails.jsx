@@ -1,8 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text } from '@chakra-ui/react';
+import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover } from '@chakra-ui/react';
 import { FaPrint } from 'react-icons/fa';
-import Html5QrcodePlugin from '/src/plugins/Html5QrcodePlugin.jsx';
+import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
+
+// Parse the QR code text to extract the serial number
+const parseQRcodeText = (decodedText) => {
+  if (decodedText.includes('gs/')) {
+    // parsing format: https://a.airthin.gs/123123123?id=232432
+    const parts = decodedText.split(/gs\/(.*?)\?id/);
+    return {
+      before: parts[0],
+      serialNumber: parts[1],
+      after: parts[2]
+    };
+  } else {
+    // parsing format: 2820001088 AZVZVVA
+    const parts = decodedText.split(/(\d+)/);
+    if (parts.length === 3) {
+      return {
+        before: parts[0],
+        serialNumber: parts[1],
+        after: parts[2]
+      };
+    }
+    return null; // Handle case where pattern doesn't match
+  }
+};
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -13,7 +37,7 @@ const ProjectDetails = () => {
   const [lastFetchedId, setLastFetchedId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
-  const [decodedText, setDecodedText] = useState(null);
+  const [serialNumber, setSerialNumber] = useState(null);
 
   useEffect(() => {
     console.log('Fetching tasks for project:', projectId);
@@ -82,13 +106,10 @@ const ProjectDetails = () => {
   };
 
   const onNewScanResult = (decodedText, decodedResult) => {
-    const parts = decodedText.split(/gs\/(.*?)\?id/);
-    const parsedText = {
-      before: parts[0],
-      serialNumber: parts[1],
-      after: parts[2]
-    };
-    setDecodedText(parsedText.serialNumber);
+    const parsedText = parseQRcodeText(decodedText);
+    if (parsedText) {
+      setSerialNumber(parsedText.serialNumber);
+    }
   };
 
   if (error) {
@@ -134,18 +155,16 @@ const ProjectDetails = () => {
           <ModalHeader>Linking Task {selectedTaskForModal?.name}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {/* <video autoPlay playsInline muted></video> */}
-            <Html5QrcodePlugin
-                fps={10}
-                qrbox={250}
-                disableFlip={false}
-                qrCodeSuccessCallback={onNewScanResult}
-                isCameraActive={isModalOpen}
+            <Html5Qrcode
+              fps={10}
+              qrbox={250}
+              disableFlip={false}
+              qrCodeSuccessCallback={onNewScanResult}
             />
-            <Center mt={4}>
-              <Text>{decodedText}</Text>
-            </Center>
           </ModalBody>
+          <ModalFooter>
+            <Text>Serial number: {serialNumber || 'No QR code detected'}</Text>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
