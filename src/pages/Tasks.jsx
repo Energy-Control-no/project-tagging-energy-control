@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup } from '@chakra-ui/react';
-import { FaPrint } from 'react-icons/fa';
+import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton } from '@chakra-ui/react';
+import { FaPrint, FaQrcode } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 
 // Parse the QR code text to extract the serial number
@@ -38,6 +38,11 @@ const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
   const [serialNumber, setSerialNumber] = useState(null);
+  const [showPrintingSection, setShowPrintingSection] = useState(false);
+
+  const togglePrintingSection = () => {
+    setShowPrintingSection(!showPrintingSection);
+  };
 
   useEffect(() => {
     console.log('Fetching tasks for project:', projectId);
@@ -136,26 +141,47 @@ const Tasks = () => {
 
   return (
     <Box p={5}>
-      <Heading mb={4}>Project Tasks</Heading>
-      <Box display="flex" justifyContent="space-between" mb={4}>
-        <Button leftIcon={<FaPrint />} colorScheme="blue" onClick={exportToCSV}>
-          Export Print File
-        </Button>
-        <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set(tasks.map(task => task.id)))}>
-          Select All
-        </Button>
-        <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set())}>
-          Clear Selection
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Heading as="h2" size="md" mb={4}>Project Tasks</Heading>
+        <Button variant='link' onClick={togglePrintingSection}>
+          {showPrintingSection ? 'Hide Printing' : 'Print Labels'}
         </Button>
       </Box>
+      {showPrintingSection && (
+        <Box display="flex" justifyContent="space-between" mb={4}>
+            <Button leftIcon={<FaPrint />} colorScheme="blue" onClick={exportToCSV}>
+            Export Print File
+            </Button>
+            
+            <div>
+                <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set(tasks.map(task => task.id)))}>
+                Select All
+                </Button>
+                <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set())}>
+                Clear Selection
+                </Button>
+            </div>
+        </Box>
+      )}
+
       <VStack align="stretch" spacing={4}>
         {tasks.map(task => (
-          <Box key={task.id} display="flex" alignItems="center">
-            <Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
-            <Box ml={2} onClick={() => openModal(task)} cursor="pointer">
-              #{task.sequence_number} - {task.name || 'Unnamed Task'} - Created at: {new Date(task.created_at).toLocaleDateString()}
-            </Box>
-          </Box>
+          <Card key={task.id} mb={4} width="100%">
+          <CardBody>
+            <Flex justify="space-between" align="center">
+            {showPrintingSection && (
+                <div>
+                    <Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
+                </div>
+            )}
+                <div>
+                    <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
+                    <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
+                </div>
+                <IconButton icon={<FaQrcode />} aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
+            </Flex>
+          </CardBody>
+        </Card>
         ))}
       </VStack>
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
