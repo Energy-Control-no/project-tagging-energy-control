@@ -19,12 +19,23 @@ async function fetchFieldwireCategories(token: string, project_id: string) {
 }
 
 Deno.serve(async (req) => {
-    try {
-        if (req.method !== 'GET') {
-            return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-                status: 405,
-                headers: { 'Content-Type': 'application/json' },
-            });
+    const headers = new Headers({
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*", // This allows all domains. For production, specify your domain instead.
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      });
+      try {
+        if (req.method === "OPTIONS") {
+          // Handle CORS preflight request
+          return new Response(null, { status: 204, headers });
+        }
+    
+        if (req.method !== "GET") {
+          return new Response(JSON.stringify({ error: "Method not allowed" }), {
+            status: 405,
+            headers,
+          });
         }
 
         const url = new URL(req.url);
@@ -33,7 +44,7 @@ Deno.serve(async (req) => {
         if (!project_id) {
             return new Response(JSON.stringify({ error: 'Project ID is required' }), {
                 status: 400,
-                headers: { 'Content-Type': 'application/json' },
+                headers,
             });
         }
 
@@ -41,13 +52,13 @@ Deno.serve(async (req) => {
         const categories = await fetchFieldwireCategories(token, project_id);
         return new Response(JSON.stringify({ teams: categories }), {
             status: 200,
-            headers: { 'Content-Type': 'application/json' },
+            headers,
         });
     } catch (error) {
         console.error('Error:', error);
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers,
         });
     }
 });
