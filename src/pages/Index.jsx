@@ -3,6 +3,7 @@ import {
   Box,
   Flex,
   Text,
+  Input,
   VStack,
   Heading,
   Spinner,
@@ -32,6 +33,7 @@ const Index = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 3 });
@@ -54,11 +56,15 @@ const Index = () => {
   }, []);
 
   return (
-    <SimpleGrid columns={columns} spacing={5}>
+    <Box>
+      <Input variant="outline" placeholder="Search by project name" my="4"value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
+      <SimpleGrid columns={columns} spacing={5}>
           {loading ? (
             <Spinner />
           ) : projects.length > 0 ? (
-            projects.map(project => (
+            projects
+            .filter(project => project.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map(project => (
               <Box key={project.id} p={4} borderRadius="md" boxShadow="md" onClick={() => navigate(`/project/${project.id}`)}>
                 <Flex justifyContent="space-between">
                   <Text fontWeight="bold">{project.name}</Text>
@@ -74,6 +80,7 @@ const Index = () => {
             <Text>No projects available.</Text>
           )}
         </SimpleGrid>
+      </Box>
   );
 };
 
