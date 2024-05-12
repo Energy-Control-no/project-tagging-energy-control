@@ -8,7 +8,8 @@ import {
   Spinner,
   useToast,
   Image,
-  SimpleGrid
+  SimpleGrid,
+  useBreakpointValue
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -33,6 +34,8 @@ const Index = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
+  const columns = useBreakpointValue({ base: 1, sm: 2, md: 3 });
+
   useEffect(() => {
     setLoading(true);
     fetchProjects().then(data => {
@@ -51,7 +54,7 @@ const Index = () => {
   }, []);
 
   return (
-        <SimpleGrid columns={3} spacing={5}>
+    <SimpleGrid columns={columns} spacing={5}>
           {loading ? (
             <Spinner />
           ) : projects.length > 0 ? (
