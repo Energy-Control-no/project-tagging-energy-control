@@ -135,7 +135,7 @@ const PrintLabels = () => {
   }
 
   return (
-    <Box p={5}>
+    <Box>
       <Heading mb={4}>Project Tasks</Heading>
       <Box display="flex" justifyContent="space-between" mb={4}>
         <Button leftIcon={<FaPrint />} colorScheme="blue" onClick={exportToCSV}>

@@ -21,7 +21,7 @@ const ProjectDetails = () => {
   // }, [projectId]);
 
   return (
-    <Box p={5}>
+    <Box>
           <Heading as="h2" size="md" mb={4}>Project: {details?.name || projectId}</Heading>
           <Box mb={4}>
             Skyline Tower is designed to redefine the skyline of the city center. The project aims to create a hub for corporate activities, featuring 500,000 square meters of environmentally sustainable office space.

@@ -140,24 +140,24 @@ const Tasks = () => {
   }
 
   return (
-    <Box p={5}>
+    <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Heading as="h2" size="md" mb={4}>Project Tasks</Heading>
-        <Button variant='link' onClick={togglePrintingSection}>
+        <Button variant="link" onClick={togglePrintingSection}>
           {showPrintingSection ? 'Hide Printing' : 'Print Labels'}
         </Button>
       </Box>
       {showPrintingSection && (
-        <Box display="flex" justifyContent="space-between" mb={4}>
-            <Button leftIcon={<FaPrint />} colorScheme="blue" onClick={exportToCSV}>
+        <Box display="flex" justifyContent="space-between" gap='6px' mb={4}>
+            <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
             Export Print File
             </Button>
             
-            <div>
-                <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set(tasks.map(task => task.id)))}>
+            <div style={{ display: 'flex', gap: '6px' }}>
+                <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set(tasks.map(task => task.id)))}>
                 Select All
                 </Button>
-                <Button colorScheme="gray" onClick={() => setSelectedTasks(new Set())}>
+                <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set())}>
                 Clear Selection
                 </Button>
             </div>
@@ -174,11 +174,11 @@ const Tasks = () => {
                     <Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
                 </div>
             )}
-                <div>
+                <div style={{ fontSize: 'smaller' }}>
                     <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
                     <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
                 </div>
-                <IconButton icon={<FaQrcode />} aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
+                <IconButton icon={<FaQrcode />} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
             </Flex>
           </CardBody>
         </Card>
