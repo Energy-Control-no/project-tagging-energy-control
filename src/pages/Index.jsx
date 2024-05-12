@@ -15,8 +15,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
-const fetchProjects = async (projectId) => {
-  const response = await fetch(`https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_tasks?project_id=${projectId}`, {
+const fetchProjects = async () => {
+  const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_projects', {
     method: 'GET'
   });
   if (!response.ok) {
@@ -35,13 +35,12 @@ const Index = () => {
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const projectId = '098b8040-134a-46cd-88ce-814bdd447b9f'; // Example project ID
 
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 3 });
 
   useEffect(() => {
     setLoading(true);
-    fetchProjects(projectId).then(data => {
+    fetchProjects().then(data => {
       setProjects(data.projects);
       setLoading(false);
     }).catch(error => {
@@ -54,7 +53,7 @@ const Index = () => {
       });
       setLoading(false);
     });
-  }, [projectId]);
+  }, []);
 
   return (
     <Box>
