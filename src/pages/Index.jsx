@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 const fetchProjects = async () => {
-  const response = await fetch('https://wyq0d1.buildship.run/fieldwire', {
+  const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_projects', {
     method: 'GET'
   });
   if (!response.ok) {
