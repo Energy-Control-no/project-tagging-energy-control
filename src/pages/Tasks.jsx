@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input} from '@chakra-ui/react';
+import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter} from '@chakra-ui/react';
 import { FaPrint, FaQrcode } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 
@@ -175,13 +175,11 @@ const Tasks = () => {
 
       <VStack align="stretch" spacing={4}>
         {tasks.map(task => (
-          <Card key={task.id} mb={4} width="100%">
-          <CardBody>
+        <Card key={task.id} mb={2} width="100%">
+          <CardBody p={4}>
             <Flex justify="space-between" align="center">
             {showPrintingSection && (
-                <div>
-                    <Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
-                </div>
+                <div><Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></div>
             )}
                 <div style={{ fontSize: 'smaller' }}>
                     <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
@@ -190,6 +188,11 @@ const Tasks = () => {
                 <IconButton icon={<FaQrcode />} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
             </Flex>
           </CardBody>
+            {task.serialNumber && (
+            <CardFooter p={4} pt={0}>
+                <Text fontSize="xs" color="green">Linked to: {task.serialNumber}</Text>
+            </CardFooter>
+            )}
         </Card>
         ))}
       </VStack>
