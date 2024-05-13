@@ -1,9 +1,8 @@
 import simpleOauthModule from 'npm:simple-oauth2@2.5.2';
-import process from 'node:process';
 
 // Environment variables for client credentials
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const CLIENT_ID = Deno.env.get("AIRTHINGS_CLIENT_ID");
+const CLIENT_SECRET = Deno.env.get("AIRTHINGS_CLIENT_SECRET");
 
 const airthingsAuth = async () => {
   const oauth2 = simpleOauthModule.create({
