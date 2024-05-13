@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton } from '@chakra-ui/react';
+import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input} from '@chakra-ui/react';
 import { FaPrint, FaQrcode } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 
@@ -39,6 +39,7 @@ const Tasks = () => {
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
   const [serialNumber, setSerialNumber] = useState(null);
   const [showPrintingSection, setShowPrintingSection] = useState(false);
+  const serialNumberInputRef = useRef(null);
 
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
@@ -99,6 +100,14 @@ const Tasks = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const manualEntryClicked = () => {
+    if (serialNumberInputRef.current) {
+        const input = serialNumberInputRef.current;
+        input.focus();
+        input.select();
+      }
   };
 
   const linkDevice = () => {
@@ -184,26 +193,30 @@ const Tasks = () => {
         </Card>
         ))}
       </VStack>
+
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Linking Task {selectedTaskForModal?.name}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Html5Qrcode
-              fps={10}
-              qrbox={250}
-              disableFlip={false}
-              qrCodeSuccessCallback={onNewScanResult}
-            />
-          </ModalBody>
-          <ModalFooter justifyContent="center">
-            <Text fontWeight="bold" fontSize="xl" mb={2} textAlign="center" width="100%">Serial number: {serialNumber || 'No QR code detected'}</Text>
-          </ModalFooter>
-          <ModalFooter justifyContent="center">
+            <ModalHeader>Linking Task {selectedTaskForModal?.name}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+                <Html5Qrcode
+                fps={10}
+                qrbox={250}
+                disableFlip={false}
+                qrCodeSuccessCallback={onNewScanResult}
+                />
+            </ModalBody>
+            <ModalFooter flexDirection="column" alignItems="center">
+                <Text fontWeight="bold" fontSize="xl" mb={2} textAlign="center" width="100%">Serial number:</Text>
+                <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" textAlign="center" width="100%" fontSize="md" mb={2}/>
+            </ModalFooter>
+            <ModalFooter justifyContent="center">
             <ButtonGroup width="100%" maxW="420px">
-              <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px">Enter manually</Button>
-              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber}>Link</Button>
+            <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px" onClick={manualEntryClicked}>
+                Enter manually
+            </Button>
+            <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber}>Link</Button>
             </ButtonGroup>
           </ModalFooter>
         </ModalContent>
