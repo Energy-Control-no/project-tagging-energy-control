@@ -188,12 +188,12 @@ const Tasks = () => {
         </Button>
       </Box>
       {showPrintingSection && (
-        <Box my={2}>
+        <Box mb={6} p={4} border="1px solid #e2e8f0">
             <Box>
-                <Text fontSize="xs" color="gray.400" fontFamily="mono">
+                <Text fontSize="xs" fontFamily="mono">
                     Label: #{selectedFields.map(field => tasks[0][field]).join('-')}
                 </Text>
-                <Flex direction="row" flexWrap="wrap" mb={6}>
+                <Flex direction="row" flexWrap="wrap" mb={4}>
                     <Flex alignItems="center"><Text fontSize="sm"># </Text></Flex>
                     {selectedFields.map((field, index) => (
                         <>
@@ -209,7 +209,7 @@ const Tasks = () => {
                     <Button onClick={addField} size="sm" m={0.5} minWidth="32px">+</Button>
                 </Flex>
             </Box>
-            <Box display="flex" justifyContent="space-between" gap='6px' mb={5}>
+            <Box display="flex" justifyContent="space-between" gap='6px'>
                 <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
                 Export Print File
                 </Button>
@@ -234,15 +234,15 @@ const Tasks = () => {
             return (
               <Card key={task.id} mb={2} width="100%">
                 <CardBody p={4}>
-                  <Flex justify="space-between" align="center">
+                  <Flex>
                   {showPrintingSection && (
-                      <div><Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></div>
+                      <Box><Checkbox pr={4} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></Box>
                   )}
-                      <div style={{ fontSize: 'smaller' }}>
+                      <Box flex="1" style={{ fontSize: 'smaller' }}>
                           <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
                           <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <IconButton icon={<FaQrcode />} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
+                      </Box>
+                      <IconButton icon={<FaQrcode />} ml={2} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
                   </Flex>
                 </CardBody>
                   {linkedTask && (
