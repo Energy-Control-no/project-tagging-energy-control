@@ -4,7 +4,6 @@ import { Box, Flex, Image, Heading, useBreakpointValue } from '@chakra-ui/react'
 import Index from './pages/Index';
 import ProjectDetails from './pages/ProjectDetails';
 import Login from './pages/Login';
-import PrintLabels from './pages/PrintLabels';
 import Tasks from './pages/Tasks';
 
 function App() {
@@ -24,7 +23,6 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/project/:projectId" element={<ProjectDetails />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/project/:projectId/printlabels" element={<PrintLabels />} />
             <Route path="/project/:projectId/tasks" element={<Tasks />} />
           </Routes>
         </Box>

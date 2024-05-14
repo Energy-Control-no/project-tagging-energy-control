@@ -30,9 +30,6 @@ const ProjectDetails = () => {
             <Button colorScheme="blue" size="lg" variant="outline" p={4}>
               Link Airthings
             </Button>
-            <Button colorScheme="blue" size="lg" variant="outline" p={4} onClick={() => navigate(`/project/${projectId}/printlabels`)}>
-              Print labels
-            </Button>
             <Button colorScheme="blue" size="lg" variant="outline" p={4} onClick={() => navigate(`/project/${projectId}/tasks`)}>
               Go to tasks
             </Button>
