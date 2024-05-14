@@ -12,6 +12,7 @@ async function fetchFieldwireProjectDetails(token: string, project_id: string) {
     };
 
     const response = await fetch(categoriesUrl, options);
+
     if (!response.ok) {
         throw new Error(`Failed to fetch details for project ${project_id}`);
     }

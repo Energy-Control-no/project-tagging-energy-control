@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select} from '@chakra-ui/react';
 import { FaPrint, FaQrcode } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
@@ -30,6 +30,7 @@ const parseQRcodeText = (decodedText) => {
 
 const Tasks = () => {
   const { projectId } = useParams();
+  const location = useLocation();
   const [tasks, setTasks] = useState([]);
   const [linkedTasks, setLinkedTasks] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState(new Set());
@@ -44,6 +45,10 @@ const Tasks = () => {
   const [taskFields, setTaskFields] = useState(['sequence_number', 'name', 'created_at']);
 
   const serialNumberInputRef = useRef(null);
+
+  // Parse the URL query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const projectName = queryParams.get('name'); // Assuming 'name' is the query parameter
 
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
@@ -132,11 +137,6 @@ const Tasks = () => {
   };
 
   const linkDevice = () => {
-    // Placeholder function for linking device to tag
-    console.log('Linking device and tag ...');
-    console.log('Device serial number:', serialNumber);
-    console.log('Tag sequence number:', selectedTaskForModal.sequence_number);
-    console.log('Tag ID:', selectedTaskForModal.id);
     // Create a new linked task object
       const newLinkedTask = {
         serialNumber: serialNumber,
@@ -182,7 +182,7 @@ const Tasks = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Heading as="h2" size="md" mb={4}>Project Tasks</Heading>
+        <Heading as="h2" size="md" mb={4}>Project Tasks: {projectName || projectId}</Heading>
         <Button variant="link" onClick={togglePrintingSection}>
           {showPrintingSection ? 'Hide Printing' : 'Print Labels'}
         </Button>

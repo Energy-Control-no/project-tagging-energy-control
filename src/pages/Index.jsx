@@ -65,7 +65,7 @@ const Index = () => {
             projects
             .filter(project => project.name.toLowerCase().includes(searchQuery.toLowerCase()))
             .map(project => (
-              <Box key={project.id} p={4} borderRadius="md" boxShadow="md" onClick={() => navigate(`/project/${project.id}`)}>
+              <Box key={project.id} p={4} borderRadius="md" boxShadow="md" onClick={() => navigate(`/project/${project.id}?name=${encodeURIComponent(project.name)}`)}>
                 <Flex justifyContent="space-between">
                   <Text fontWeight="bold">{project.name}</Text>
                   <Box width="20px" height="20px" borderRadius="50%" bg={project.color} />
