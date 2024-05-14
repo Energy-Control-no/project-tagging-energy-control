@@ -19,8 +19,7 @@ const airthingsAuth = async () => {
   try {
     const tokenConfig = {
       grant_type: 'client_credentials',
-      scope: ['read:device'],
-      fetch: { allow_redirects: false }
+      scope: ['read:device']
     };
 
 

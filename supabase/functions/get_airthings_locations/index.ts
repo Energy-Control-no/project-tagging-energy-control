@@ -10,11 +10,12 @@ async function fetchAirthingsLocations(token: string, account_id: string) {
         }
     };
 
-    const response = await fetch(locationsUrl, options);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch locations for account ${account_id}, ${response.statusText}`);
+    try {
+        const response = await fetch(locationsUrl, options);
+        return await response.json();
+    } catch (error) {
+        throw new Error(`Failed to fetch locations for account ${account_id}, ${error}`);
     }
-    return await response.json();
 }
 
 Deno.serve(async (req) => {
@@ -40,14 +41,20 @@ Deno.serve(async (req) => {
         }
 
         const token = await airthingsAuth();
-
+        if (!token) {
+            return new Response(JSON.stringify({ error: "Failed to get auth token" }), {
+                status: 401,
+                headers,
+                });
+        }
+        console.log("token", token)
         const response = await fetchAirthingsLocations(token, accountId);
+
         return new Response(JSON.stringify(response), {
             status: 200,
             headers,
         });
     } catch (error) {
-        console.error('Error:', error);
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers,
