@@ -1,32 +1,59 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+import airthingsAuth from '../_shared/airthings_auth.ts';
 
 // Setup type definitions for built-in Supabase Runtime APIs
 /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 
-console.log("Hello from Functions!")
 
 Deno.serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello ${name}!`,
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+  try {
+    const { deviceId, serialNumber, locationId, deviceName } = await req.json();
+    const token = await airthingsAuth();
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Failed to get auth token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-/* To invoke locally:
+    const apiUrl = `https://ext-api.airthings.com/v1/locations/${locationId}/devices`;
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        id: deviceId,
+        name: deviceName,
+        serialNumber: serialNumber
+      })
+    });
 
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
+    if (!response.ok) {
+      const errorData = await response.json();
+      return new Response(JSON.stringify(errorData), {
+        status: response.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/post_airthings_device' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/
+    const data = await response.json();
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error('Error adding Airthings device:', error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
