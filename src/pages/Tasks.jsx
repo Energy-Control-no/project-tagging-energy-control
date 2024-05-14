@@ -31,13 +31,14 @@ const parseQRcodeText = (decodedText) => {
 const Tasks = () => {
   const { projectId } = useParams();
   const [tasks, setTasks] = useState([]);
+  const [linkedTasks, setLinkedTasks] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
-  const [serialNumber, setSerialNumber] = useState(null);
+  const [serialNumber, setSerialNumber] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(false);
   const [selectedFields, setSelectedFields] = useState(['sequence_number', 'name']); // Default fields
   const [taskFields, setTaskFields] = useState(['sequence_number', 'name', 'created_at']);
@@ -136,16 +137,26 @@ const Tasks = () => {
     console.log('Device serial number:', serialNumber);
     console.log('Tag sequence number:', selectedTaskForModal.sequence_number);
     console.log('Tag ID:', selectedTaskForModal.id);
+    // Create a new linked task object
+      const newLinkedTask = {
+        serialNumber: serialNumber,
+        task: selectedTaskForModal
+      };
+
+      setLinkedTasks([...linkedTasks, newLinkedTask]);
+      closeModal();
   };
 
   const openModal = (task) => {
+    // TO DO: unpause the camera if it exists
     setSelectedTaskForModal(task);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setSerialNumber(null); // Reset serialNumber state to null
+    setSerialNumber(""); // Reset serialNumber state to null
+    // TO DO: pause the camera
   };
 
   const onNewScanResult = (decodedText, decodedResult) => {
@@ -217,28 +228,32 @@ const Tasks = () => {
       )}
 
       <VStack align="stretch" spacing={4}>
-        {tasks.map(task => (
-        <Card key={task.id} mb={2} width="100%">
-          <CardBody p={4}>
-            <Flex justify="space-between" align="center">
-            {showPrintingSection && (
-                <div><Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></div>
-            )}
-                <div style={{ fontSize: 'smaller' }}>
-                    <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
-                    <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
-                </div>
-                <IconButton icon={<FaQrcode />} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
-            </Flex>
-          </CardBody>
-            {task.serialNumber && (
-            <CardFooter p={4} pt={0}>
-                <Text fontSize="xs" color="green">Linked to: {task.serialNumber}</Text>
-            </CardFooter>
-            )}
-        </Card>
-        ))}
-      </VStack>
+        {tasks.map(task => {
+            // Check if the task is linked
+            const linkedTask = linkedTasks.find(linkedTask => linkedTask.task.id === task.id);
+            return (
+              <Card key={task.id} mb={2} width="100%">
+                <CardBody p={4}>
+                  <Flex justify="space-between" align="center">
+                  {showPrintingSection && (
+                      <div><Checkbox isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></div>
+                  )}
+                      <div style={{ fontSize: 'smaller' }}>
+                          <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
+                          <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <IconButton icon={<FaQrcode />} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
+                  </Flex>
+                </CardBody>
+                  {linkedTask && (
+                  <CardFooter p={4} pt={0}>
+                      <Text fontSize="xs" color="green">Linked to: {linkedTask.serialNumber}</Text>
+                  </CardFooter>
+                  )}
+              </Card>
+              );
+            })}
+          </VStack>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
