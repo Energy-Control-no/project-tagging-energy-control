@@ -3,8 +3,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Start serving the HTTP requests
 Deno.serve(async (req: Request) => {
+  const headers = new Headers({
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*", // For development only, specify domains in production
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type"
+  });
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers });
+  }
+
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: headers });
   }
 
   const authHeader = req.headers.get('Authorization')!;
@@ -40,13 +52,13 @@ Deno.serve(async (req: Request) => {
     // Send the retrieved data back as a response
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: headers,
     });
   } catch (error) {
     console.error('Error:', error);
     return new Response(JSON.stringify({ error: error.message || 'Failed to process request' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: headers,
     });
   }
 });
