@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box, Flex, Image, Heading, useBreakpointValue } from '@chakra-ui/react';
 import Index from './pages/Index';
@@ -8,6 +8,10 @@ import Tasks from './pages/Tasks';
 
 function App() {
   const padding = useBreakpointValue({ base: 4, md: 6 }); // Adjust padding values as needed
+
+  useEffect(() => {
+    document.title = "EC Install";
+  }, []);
 
   return (
     <Router>
