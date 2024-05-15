@@ -2,10 +2,10 @@
 
 import airthingsAuth from '../_shared/airthings_auth.ts';
 
-console.log("Hello from Functions!");
+console.log("Initializing Airthings post_device function");
 
 Deno.serve(async (req) => {
-  const accountId = "c08fc819-13cf-4c7b-82ee-3212e338c5f1";
+  const accountId = "c08fc819-13cf-4c7b-82ee-3212e338c5f1"; // Solstrand Hotel
   console.log("Received request with method:", req.method);
 
   if (req.method !== "POST") {

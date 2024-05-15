@@ -4,6 +4,7 @@ import simpleOauthModule from 'npm:simple-oauth2@2.5.2';
 //const CLIENT_ID = Deno.env.get("AIRTHINGS_CLIENT_ID");
 //const CLIENT_SECRET = Deno.env.get("AIRTHINGS_CLIENT_SECRET");
 
+// Solstrand Hotel
 const CLIENT_ID = "07c3687b-a630-4444-a9c5-c770f7bcb664";
 const CLIENT_SECRET = "e0d9d342-fe87-40e2-97e1-fe546da60e8c";
 
