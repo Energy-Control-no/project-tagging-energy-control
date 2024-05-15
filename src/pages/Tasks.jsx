@@ -298,6 +298,9 @@ const Tasks = () => {
         handleCheckboxChange={handleCheckboxChange}
         formatTaskDisplay={formatTaskDisplay}
         openModal={openModal}
+        setSerialNumber={setSerialNumber}
+        setDeviceId={setDeviceId}
+        linkDevice={linkDevice}
         />
 
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
@@ -306,7 +309,7 @@ const Tasks = () => {
           <ModalHeader pb={0}>Linking Task {formatTaskDisplay(selectedTaskForModal)}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Html5Qrcode fps={10} qrbox={250} disableFlip={false} qrCodeSuccessCallback={onNewScanResult} />
+            {/* <Html5Qrcode fps={10} qrbox={250} disableFlip={false} qrCodeSuccessCallback={onNewScanResult} /> */}
           </ModalBody>
           <ModalFooter flexDirection="column" py={1}>
             <Flex direction="row" alignItems="center" width="100%" mb={2}>
