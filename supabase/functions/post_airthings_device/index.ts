@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import airthingsAuth from '../_shared/airthings_auth.ts';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import airthingsAuth from "../_shared/airthings_auth.ts";
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -12,7 +12,7 @@ serve(async (req) => {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*", // Adjust in production
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type"
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
 
   if (req.method === "OPTIONS") {
@@ -28,7 +28,7 @@ serve(async (req) => {
     const { fw_id, deviceInfo } = requestData;
 
     // Validate required deviceInfo fields
-    const requiredFields = ['serialNumber', 'deviceId', 'deviceName']; // Adjust these fields as necessary
+    const requiredFields = ["serialNumber", "deviceId", "deviceName"]; // Adjust these fields as necessary
     for (const field of requiredFields) {
       if (!deviceInfo[field]) {
         throw new Error(`Missing required field: ${field}`);
@@ -36,43 +36,51 @@ serve(async (req) => {
     }
 
     // Fetch project data from Supabase
-    const { data: projectData, error } = await supabase
-      .from('project')
-      .select('*')
-      .eq('fw_id', fw_id)
-      .single();
+    const { data: projectData, error } = await supabase.from("project").select("*").eq("fw_id", fw_id).single();
 
-    if (error) throw new Error('Failed to fetch project data');
+    if (error) throw new Error("Failed to fetch project data");
 
     // Combine locationId from the database with deviceInfo
-    deviceInfo.locationId = projectData.at_locationId;
+    //deviceInfo.locationId = projectData.at_locationId;
 
     // Authenticate with Airthings
     const accessToken = await airthingsAuth({
       clientId: projectData.at_client_id,
       clientSecret: projectData.at_client_secret,
-      accountId: projectData.at_accountId
+      accountId: projectData.at_accountId,
     });
-
+    // https://ext-api.airthings.com/v1/locations/{locationId}/devices
     // Post device information to Airthings API
-    const airthingsResponse = await fetch('https://api.airthings.com/v1/devices', {
-      method: 'POST',
+    const airthingsUrl = `https://ext-api.airthings.com/v1/locations/${projectData.at_locationId}/devices?accountId=${projectData.at_accountId}`;
+    console.log("deviceInfo", deviceInfo);
+    console.log(`POST ${airthingsUrl}`);
+    const airthingsPOSTbody = {
+      id: deviceInfo.deviceId,
+      name: deviceInfo.deviceName,
+      serialNumber: deviceInfo.serialNumber,
+    };
+    console.log("airthingsPOSTbody", airthingsPOSTbody);
+    const airthingsResponse = await fetch(airthingsUrl, {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(deviceInfo)
+      body: JSON.stringify(airthingsPOSTbody),
     });
+    console.log("airthingsResponse", airthingsResponse);
+    console.log("airthingsResponse.code", airthingsResponse.status);
+    console.log("airthingsResponse.data", airthingsResponse.data);
 
     if (!airthingsResponse.ok) {
-      throw new Error('Failed to post device information to Airthings API');
+      throw new Error("Failed to post device information to Airthings API");
     }
 
     const airthingsData = await airthingsResponse.json();
 
     return new Response(JSON.stringify({ message: "Device processed successfully", airthingsData }), { headers });
   } catch (err) {
-    console.error('Error:', err);
+    console.error("Error:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
   }
 });
