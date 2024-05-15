@@ -21,6 +21,40 @@ async function fetchFieldwireTasks(token: string, project_id: string) {
   return await response.json();
 }
 
+async function fetchFieldwireTeamIds(token: string, project_id: string) {
+  const tasksUrl =
+    `https://client-api.us.fieldwire.com/api/v3/projects/${project_id}/teams`;
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      "Fieldwire-Version": "2024-01-01",
+      "Fieldwire-Per-Page": "1000",
+      authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await fetch(tasksUrl, options);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch task teams for project ${project_id}`);
+  }
+  return await response.json();
+}
+
+const enrichTaskInfo = (tasks, teams) => {
+  return tasks.map(task => {
+    const team = teams.find(team => team.id === task.team_id);
+    if (team) {
+      return {
+        ...task,
+        team_name: team.name,
+        team_handle: team.handle,
+      };
+    }
+    return task;
+  });
+}
+
 Deno.serve(async (req) => {
   const headers = new Headers({
     "Content-Type": "application/json",
@@ -51,8 +85,12 @@ Deno.serve(async (req) => {
       });
     }
     const token = await generateFieldwireToken();
+    console.log(`token: ${token}`);
     const tasks = await fetchFieldwireTasks(token, project_id);
-    return new Response(JSON.stringify({ tasks: tasks }), {
+    const teams = await fetchFieldwireTeamIds(token, project_id);
+    const enrichedTasks = enrichTaskInfo(tasks, teams);
+
+    return new Response(JSON.stringify({ tasks: enrichedTasks }), {
       status: 200,
       headers,
     });
