@@ -18,7 +18,9 @@ function App() {
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" p={padding}>
         <Box width="full" maxWidth="900px">
           <Flex direction="column" align="start">
-            <Image as={Link} to="/" src="/ec_logo.png" alt="EC Logo" htmlWidth="100px" htmlHeight="100px" mb={4} />
+            <Box as={Link} to="/" mb={4}>
+              <Image src="/ec_logo.png" alt="EC Logo" htmlWidth="100px" htmlHeight="100px" />
+            </Box>
             <Heading mb={4} fontFamily="Space Grotesk, sans-serif" color="rgb(16, 56, 48)">
               EC Install
             </Heading>
