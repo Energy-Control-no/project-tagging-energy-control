@@ -1,5 +1,3 @@
-// @supabase/functions/post_airthings_device/index.ts
-
 import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import airthingsAuth from './_shared/airthings_auth.ts';
@@ -9,91 +7,72 @@ const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log("Initializing Airthings post_device function");
-
-Deno.serve(async (req) => {
-  const accountId = "c08fc819-13cf-4c7b-82ee-3212e338c5f1"; // Solstrand Hotel
-  console.log("Received request with method:", req.method);
+serve(async (req) => {
   const headers = new Headers({
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*", // For development only, specify domains in production
+    "Access-Control-Allow-Origin": "*", // Adjust in production
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type"
   });
 
-  // Handle preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: headers });
+    return new Response(null, { headers });
   }
 
   if (req.method !== "POST") {
-    console.log("Method not allowed");
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: headers
-    });
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
   }
 
   try {
-    
-    const requestBody = await req.text(); // Get raw request body
-    console.log("Raw request body:", requestBody);
+    const requestData = await req.json();
+    const { fw_id, deviceInfo } = requestData;
 
-    const { deviceId, serialNumber, locationId, deviceName } = JSON.parse(requestBody);
-    console.log("Parsed JSON:", { deviceId, serialNumber, locationId, deviceName });
-
-    const token = await airthingsAuth();
-    if (!token) {
-      console.log("Failed to get auth token");
-      return new Response(JSON.stringify({ error: "Failed to get auth token" }), {
-        status: 401,
-        headers: headers,
-      });
+    // Validate required deviceInfo fields
+    const requiredFields = ['serialNumber', 'deviceId', 'deviceName']; // Adjust these fields as necessary
+    for (const field of requiredFields) {
+      if (!deviceInfo[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
     }
-    console.log("Auth token:", token);
 
-    const apiUrl = `https://ext-api.airthings.com/v1/locations/${locationId}/devices?accountId=${accountId}`;
-    console.log("apiUrl:", apiUrl);
-    console.log("apiBody:", {
-      id: deviceId,
-      name: deviceName,
-      serialNumber: serialNumber,
+    // Fetch project data from Supabase
+    const { data: projectData, error } = await supabase
+      .from('project')
+      .select('*')
+      .eq('fw_id', fw_id)
+      .single();
+
+    if (error) throw new Error('Failed to fetch project data');
+
+    // Combine locationId from the database with deviceInfo
+    deviceInfo.locationId = projectData.at_locationId;
+
+    // Authenticate with Airthings
+    const accessToken = await airthingsAuth({
+      clientId: projectData.at_client_id,
+      clientSecret: projectData.at_client_secret,
+      accountId: projectData.at_accountId
     });
-    const response = await fetch(apiUrl, {
-      method: "POST",
+
+    // Post device information to Airthings API
+    const airthingsResponse = await fetch('https://api.airthings.com/v1/devices', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        id: deviceId,
-        name: deviceName,
-        serialNumber: serialNumber,
-      }),
+      body: JSON.stringify(deviceInfo)
     });
-    console.log("Response status:", response.status);
-    console.log("Response headers:", response.headers);
-    console.log("Response body:", response.body);
-    if (!response.ok) {
-      const errorData = await response.text(); // Get raw response body for error
-      console.log("API error response:", errorData);
-      return new Response(errorData, {
-        status: response.status,
-        headers: headers,
-      });
+
+    if (!airthingsResponse.ok) {
+      throw new Error('Failed to post device information to Airthings API');
     }
 
-    const data = await response.json();
-    console.log("API success response:", data);
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: headers,
-    });
-  } catch (error) {
-    console.error("Error processing request:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: headers,
-    });
+    const airthingsData = await airthingsResponse.json();
+
+    return new Response(JSON.stringify({ message: "Device processed successfully", airthingsData }), { headers });
+  } catch (err) {
+    console.error('Error:', err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
   }
 });
