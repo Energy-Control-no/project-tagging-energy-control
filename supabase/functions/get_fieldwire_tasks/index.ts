@@ -9,6 +9,7 @@ async function fetchFieldwireTasks(token: string, project_id: string) {
       accept: "application/json",
       "Fieldwire-Version": "2024-01-01",
       "Fieldwire-Per-Page": "1000",
+      "Fieldwire-Filter": "active",
       authorization: `Bearer ${token}`,
     },
   };
