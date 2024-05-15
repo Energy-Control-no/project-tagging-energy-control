@@ -7,25 +7,37 @@ import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 // Parse the QR code text to extract the serial number
 const parseQRcodeText = (decodedText) => {
   if (decodedText.includes('gs/')) {
-    // parsing format: https://a.airthin.gs/123123123?id=232432
-    const parts = decodedText.split(/gs\/(.*?)\?id/);
+    const parts = decodedText.split(/gs\/(.*?)\?id/); // parsing format: https://a.airthin.gs/123123123?id=232432
+    const idParts = parts[2]?.split(/&|=/); // Split by '&' or '=' to handle case where there are more query parameters after 'id'
     return {
-      before: parts[0],
       serialNumber: parts[1],
-      after: parts[2]
+      deviceId: idParts ? idParts[1] : null, // The id is the second part after splitting by '&' or '='
     };
   } else {
-    // parsing format: 2820001088 AZVZVVA
-    const parts = decodedText.split(/(\d+)/);
+    const parts = decodedText.split(/(\d+)/); // parsing format: 2820001088 AZVZVVA
     if (parts.length === 3) {
       return {
-        before: parts[0],
         serialNumber: parts[1],
-        after: parts[2]
+        deviceId: parts[2].trim()
       };
     }
     return null; // Handle case where pattern doesn't match
   }
+};
+
+const postAirthingsDevice = async (deviceDetails) => {
+  const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(deviceDetails)
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add device');
+  }
+  return response.json();
 };
 
 const Tasks = () => {
@@ -35,11 +47,13 @@ const Tasks = () => {
   const [linkedTasks, setLinkedTasks] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [error, setError] = useState(null);
+  const [modalError, setModalError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
   const [serialNumber, setSerialNumber] = useState("");
+  const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(false);
   const [selectedFields, setSelectedFields] = useState(['sequence_number', 'name']); // Default fields
   const [taskFields, setTaskFields] = useState(['sequence_number', 'name', 'created_at']);
@@ -136,15 +150,28 @@ const Tasks = () => {
       }
   };
 
-  const linkDevice = () => {
-    // Create a new linked task object
+  const linkDevice = async ()  => {
+    try {
+      const deviceDetails = {
+        id: deviceId,
+        name: selectedTaskForModal.name,
+        serialNumber: serialNumber
+      }
+
+      const response = await postAirthingsDevice(deviceDetails);
+  
+      // Show successfully linked tasks in the task card
       const newLinkedTask = {
         serialNumber: serialNumber,
+        id: deviceId,
         task: selectedTaskForModal
       };
-
       setLinkedTasks([...linkedTasks, newLinkedTask]);
       closeModal();
+    } catch (error) {
+      console.error('Failed to link device:', error);
+      setModalError('Failed to link device. Try again.');
+    }
   };
 
   const openModal = (task) => {
@@ -155,14 +182,18 @@ const Tasks = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setSerialNumber(""); // Reset serialNumber state to null
+    setSerialNumber(""); // Reset serialNumber state
+    setDeviceId(""); // Reset deviceId state
+    setModalError(null); // Reset error state to null
     // TO DO: pause the camera
   };
 
   const onNewScanResult = (decodedText, decodedResult) => {
     const parsedText = parseQRcodeText(decodedText);
     if (parsedText) {
+      setModalError(null); // Reset error state to null
       setSerialNumber(parsedText.serialNumber);
+      setDeviceId(parsedText.deviceId);
     }
   };
 
@@ -268,18 +299,29 @@ const Tasks = () => {
                 qrCodeSuccessCallback={onNewScanResult}
                 />
             </ModalBody>
-            <ModalFooter flexDirection="column" alignItems="center">
-                <Text fontWeight="bold" fontSize="xl" mb={2} textAlign="center" width="100%">Serial number:</Text>
-                <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" textAlign="center" width="100%" fontSize="md" mb={2}/>
+            <ModalFooter flexDirection="column">
+              <Flex direction="row" alignItems="center" width="100%" mb={2}>
+                <Text flex="1" fontWeight="bold" mr={3} mb={2}>Serial number:</Text>
+                <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" mb={2}/>
+              </Flex>
+              <Flex direction="row" alignItems="center" width="100%" mb={2}>
+                <Text flex="1" fontWeight="bold" mr={3} mb={2}>DeviceId:</Text>
+                <Input value={deviceId} placeholder="Scan or enter the device id" onChange={(e) => setDeviceId(e.target.value)} variant="flushed" mb={2}/>
+              </Flex>
             </ModalFooter>
+            {modalError &&
+              <ModalFooter pt={1}>
+                <Text textAlign="center" width="100%" color="red">{modalError}</Text>
+              </ModalFooter>
+            }
             <ModalFooter justifyContent="center">
-            <ButtonGroup width="100%" maxW="420px">
-            <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px" onClick={manualEntryClicked}>
-                Enter manually
-            </Button>
-            <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber}>Link</Button>
-            </ButtonGroup>
-          </ModalFooter>
+              <ButtonGroup width="100%" maxW="420px">
+              <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px" onClick={manualEntryClicked}>
+                  Enter manually
+              </Button>
+              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber || !deviceId}>Link</Button>
+              </ButtonGroup>
+            </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
