@@ -57,10 +57,10 @@ const Index = () => {
 
   return (
     <Box>
-      <Input variant="outline" placeholder="Search by project name" my="4"value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
       <Text fontSize="lg" mb={4}>
         Welcome! Please select a Fieldwire project below to print device labels and link Airthings devices.
       </Text>
+      <Input variant="outline" placeholder="Search by project name" my="4"value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
       <SimpleGrid columns={columns} spacing={5}>
           {loading ? (
             <Spinner />
@@ -81,9 +81,7 @@ const Index = () => {
                   <Box width="20px" height="20px" borderRadius="50%" bg={project.color} />
                 </Flex>
                 <Text fontSize="sm">Created: {format(new Date(project.created_at), 'PPP')}</Text>
-                {project.has_logo && project.logo_url && (
-                  <Image src={project.logo_url} alt={`${project.name} Logo`} htmlWidth="120px" htmlHeight="120px" />
-                )}
+                
               </Box>
             ))
           ) : (
