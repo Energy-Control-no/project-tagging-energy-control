@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select} from '@chakra-ui/react';
 import { FaPrint, FaQrcode } from 'react-icons/fa';
 import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
 
 // Parse the QR code text to extract the serial number
 const parseQRcodeText = (decodedText) => {
-  if (decodedText.includes('gs/')) {
+  if (decodedText.includes("gs/")) {
     const parts = decodedText.split(/gs\/(.*?)\?id/); // parsing format: https://a.airthin.gs/123123123?id=232432
     const idParts = parts[2]?.split(/&|=/); // Split by '&' or '=' to handle case where there are more query parameters after 'id'
     return {
@@ -18,7 +18,7 @@ const parseQRcodeText = (decodedText) => {
     if (parts.length === 3) {
       return {
         serialNumber: parts[1],
-        deviceId: parts[2].trim()
+        deviceId: parts[2].trim(),
       };
     }
     return null; // Handle case where pattern doesn't match
@@ -31,16 +31,17 @@ const postAirthingsDevice = async (payload) => {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to add device');
+    throw new Error("Failed to add device");
   }
   return response.json();
 };
 
 const Tasks = () => {
+  const navigate = useNavigate();
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
@@ -55,27 +56,32 @@ const Tasks = () => {
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(false);
-  const [selectedFields, setSelectedFields] = useState(['sequence_number', 'name']); // Default fields
-  const [taskFields, setTaskFields] = useState(['sequence_number', 'name', 'created_at']);
+  const [selectedFields, setSelectedFields] = useState(["sequence_number", "name"]); // Default fields
+  const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
   const serialNumberInputRef = useRef(null);
 
   // Parse the URL query parameters
   const queryParams = new URLSearchParams(location.search);
-  const projectName = queryParams.get('name'); // Assuming 'name' is the query parameter
+  const projectName = queryParams.get("name"); // Assuming 'name' is the query parameter
+
+  // Function to navigate back to Project Details
+  const handleBackClick = () => {
+    navigate(`/project/${projectId}/details`);
+  };
 
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
   };
 
   useEffect(() => {
-    console.log('Fetching tasks for project:', projectId);
+    console.log("Fetching tasks for project:", projectId);
     if (projectId !== lastFetchedId) {
       const fetchTasks = async () => {
         setIsLoading(true);
         setError(null);
-        const url = new URL('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_tasks');
-        url.searchParams.append('project_id', projectId);
+        const url = new URL("https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_tasks");
+        url.searchParams.append("project_id", projectId);
 
         try {
           const response = await fetch(url);
@@ -85,11 +91,11 @@ const Tasks = () => {
             setTaskFields(data.tasks.length > 0 ? Object.keys(data.tasks[0]) : []); // Generate taskFields dynamically
             setLastFetchedId(projectId); // Update last fetched ID after successful fetch
           } else {
-            throw new Error('No tasks found');
+            throw new Error("No tasks found");
           }
         } catch (error) {
-          console.error('Error fetching tasks:', error);
-          setError('Failed to load tasks. Please try again later.');
+          console.error("Error fetching tasks:", error);
+          setError("Failed to load tasks. Please try again later.");
         } finally {
           setIsLoading(false);
         }
@@ -116,7 +122,7 @@ const Tasks = () => {
   };
 
   const addField = () => {
-    setSelectedFields([...selectedFields, '']); // Add a new field with empty value
+    setSelectedFields([...selectedFields, ""]); // Add a new field with empty value
   };
 
   const removeField = () => {
@@ -126,17 +132,17 @@ const Tasks = () => {
   };
 
   const exportToCSV = () => {
-    const selectedTaskData = tasks.filter(task => selectedTasks.has(task.id));
+    const selectedTaskData = tasks.filter((task) => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
-    const csvContent = selectedTaskData.map(task => "#" + selectedFields.map(field => task[field]).join('-')).join("\n");
+    const csvContent = selectedTaskData.map((task) => "#" + selectedFields.map((field) => task[field]).join("-")).join("\n");
     const csvData = csvHeader + csvContent;
 
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'tasks.csv');
-    link.style.visibility = 'hidden';
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "tasks.csv");
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -144,13 +150,13 @@ const Tasks = () => {
 
   const manualEntryClicked = () => {
     if (serialNumberInputRef.current) {
-        const input = serialNumberInputRef.current;
-        input.focus();
-        input.select();
-      }
+      const input = serialNumberInputRef.current;
+      input.focus();
+      input.select();
+    }
   };
 
-  const linkDevice = async ()  => {
+  const linkDevice = async () => {
     try {
       const payload = {
         deviceInfo: {
@@ -158,22 +164,22 @@ const Tasks = () => {
           deviceName: selectedTaskForModal.name,
           serialNumber: serialNumber,
         },
-        fw_id: projectId
-      }
+        fw_id: projectId,
+      };
 
       const response = await postAirthingsDevice(payload);
-  
+
       // Show successfully linked tasks in the task card
       const newLinkedTask = {
         serialNumber: serialNumber,
         id: deviceId,
-        task: selectedTaskForModal
+        task: selectedTaskForModal,
       };
       setLinkedTasks([...linkedTasks, newLinkedTask]);
       closeModal();
     } catch (error) {
-      console.error('Failed to link device:', error);
-      setModalError('Failed to link device. Try again.');
+      console.error("Failed to link device:", error);
+      setModalError("Failed to link device. Try again.");
     }
   };
 
@@ -200,6 +206,15 @@ const Tasks = () => {
     }
   };
 
+  const formatTaskDisplay = (task) => {
+    const sequenceNumber = task.sequence_number || "N/A";
+    const teamHandle = task.team_handle || "No device Handle";
+    const name = task.name || "Unnamed Task";
+    const teamName = task.team_name ? `[${task.team_name}]` : "(No device Name)";
+
+    return `#${sequenceNumber} - ${teamHandle} - ${name} ${teamName}`;
+  };
+
   if (error) {
     return (
       <Alert status="error">
@@ -223,108 +238,129 @@ const Tasks = () => {
       </Box>
       {showPrintingSection && (
         <Box mb={6} p={4} border="1px solid #e2e8f0">
-            <Box>
-                <Text fontSize="xs" fontFamily="mono">
-                    Label: #{selectedFields.map(field => tasks[0][field]).join('-')}
-                </Text>
-                <Flex direction="row" flexWrap="wrap" mb={4}>
-                    <Flex alignItems="center"><Text fontSize="sm"># </Text></Flex>
-                    {selectedFields.map((field, index) => (
-                        <>
-                        {index !== 0 && <Flex alignItems="center"> <Text fontSize="sm">-</Text> </Flex>}
-                        <Select key={index} value={field} maxWidth="108px" fontSize="sm" size="sm" m={0.5} onChange={(e) => handleFieldChange(index, e)}>
-                            {taskFields.map((fieldOption) => (
-                            <option key={fieldOption} value={fieldOption}>{fieldOption}</option>
-                            ))}
-                        </Select>
-                        </>
+          <Box>
+            <Text fontSize="xs" fontFamily="mono">
+              Label: #{selectedFields.map((field) => tasks[0][field]).join("-")}
+            </Text>
+            <Flex direction="row" flexWrap="wrap" mb={4}>
+              <Flex alignItems="center">
+                <Text fontSize="sm"># </Text>
+              </Flex>
+              {selectedFields.map((field, index) => (
+                <>
+                  {index !== 0 && (
+                    <Flex alignItems="center">
+                      {" "}
+                      <Text fontSize="sm">-</Text>{" "}
+                    </Flex>
+                  )}
+                  <Select key={index} value={field} maxWidth="108px" fontSize="sm" size="sm" m={0.5} onChange={(e) => handleFieldChange(index, e)}>
+                    {taskFields.map((fieldOption) => (
+                      <option key={fieldOption} value={fieldOption}>
+                        {fieldOption}
+                      </option>
                     ))}
-                    <Button onClick={removeField} size="sm" m={0.5} minWidth="32px">-</Button>
-                    <Button onClick={addField} size="sm" m={0.5} minWidth="32px">+</Button>
-                </Flex>
-            </Box>
-            <Box display="flex" justifyContent="space-between" gap='6px'>
-                <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
-                Get Print File
-                </Button>
-                
-                <div style={{ display: 'flex', gap: '6px' }}>
-                    <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set(tasks.map(task => task.id)))}>
-                    Select All
-                    </Button>
-                    <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set())}>
-                    Clear Selection
-                    </Button>
-                </div>
-            </Box>
-            
+                  </Select>
+                </>
+              ))}
+              <Button onClick={removeField} size="sm" m={0.5} minWidth="32px">
+                -
+              </Button>
+              <Button onClick={addField} size="sm" m={0.5} minWidth="32px">
+                +
+              </Button>
+            </Flex>
+          </Box>
+          <Box display="flex" justifyContent="space-between" gap="6px">
+            <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
+              Get Print File
+            </Button>
+
+            <div style={{ display: "flex", gap: "6px" }}>
+              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set(tasks.map((task) => task.id)))}>
+                Select All
+              </Button>
+              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set())}>
+                Clear Selection
+              </Button>
+            </div>
+          </Box>
         </Box>
       )}
 
       <VStack align="stretch" spacing={4}>
-        {tasks.map(task => {
-            // Check if the task is linked
-            const linkedTask = linkedTasks.find(linkedTask => linkedTask.task.id === task.id);
-            return (
-              <Card key={task.id} mb={2} width="100%">
-                <CardBody p={4}>
-                  <Flex>
+        {tasks.map((task) => {
+          // Check if the task is linked
+          const linkedTask = linkedTasks.find((linkedTask) => linkedTask.task.id === task.id);
+          return (
+            <Card key={task.id} mb={2} width="100%">
+              <CardBody p={4}>
+                <Flex>
                   {showPrintingSection && (
-                      <Box><Checkbox pr={4} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} /></Box>
+                    <Box>
+                      <Checkbox pr={4} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
+                    </Box>
                   )}
-                      <Box flex="1" style={{ fontSize: 'smaller' }}>
-                          <p>#{task.sequence_number} - {task.name || 'Unnamed Task'}</p>
-                          <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
-                      </Box>
-                      <IconButton icon={<FaQrcode />} ml={2} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)}/>
-                  </Flex>
-                </CardBody>
-                  {linkedTask && (
-                  <CardFooter p={4} pt={0}>
-                      <Text fontSize="xs" color="green">Linked to: {linkedTask.serialNumber}</Text>
-                  </CardFooter>
-                  )}
-              </Card>
-              );
-            })}
-          </VStack>
+                  <Box flex="1" style={{ fontSize: "smaller" }}>
+                    <p>
+                      <b>{formatTaskDisplay(task)}</b>
+                    </p>
+                    <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
+                  </Box>
+                  <IconButton icon={<FaQrcode />} ml={2} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)} />
+                </Flex>
+              </CardBody>
+              {linkedTask && (
+                <CardFooter p={4} pt={0}>
+                  <Text fontSize="xs" color="green">
+                    Linked to: {linkedTask.serialNumber}
+                  </Text>
+                </CardFooter>
+              )}
+            </Card>
+          );
+        })}
+      </VStack>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
         <ModalContent>
-            <ModalHeader pb={0}>Linking Task {selectedTaskForModal?.name}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-                <Html5Qrcode
-                fps={10}
-                qrbox={250}
-                disableFlip={false}
-                qrCodeSuccessCallback={onNewScanResult}
-                />
-            </ModalBody>
-            <ModalFooter flexDirection="column" py={1}>
-              <Flex direction="row" alignItems="center" width="100%" mb={2}>
-                <Text flex="1" fontWeight="bold" mr={3} mb={2}>Serial number:</Text>
-                <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" mb={2}/>
-              </Flex>
-              <Flex direction="row" alignItems="center" width="100%" mb={2}>
-                <Text flex="1" fontWeight="bold" mr={3} mb={2}>DeviceId:</Text>
-                <Input value={deviceId} placeholder="Scan or enter the device id" onChange={(e) => setDeviceId(e.target.value)} variant="flushed" mb={2}/>
-              </Flex>
+          <ModalHeader pb={0}>Linking Task {selectedTaskForModal?.name}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Html5Qrcode fps={10} qrbox={250} disableFlip={false} qrCodeSuccessCallback={onNewScanResult} />
+          </ModalBody>
+          <ModalFooter flexDirection="column" py={1}>
+            <Flex direction="row" alignItems="center" width="100%" mb={2}>
+              <Text flex="1" fontWeight="bold" mr={3} mb={2}>
+                Serial number:
+              </Text>
+              <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" mb={2} />
+            </Flex>
+            <Flex direction="row" alignItems="center" width="100%" mb={2}>
+              <Text flex="1" fontWeight="bold" mr={3} mb={2}>
+                DeviceId:
+              </Text>
+              <Input value={deviceId} placeholder="Scan or enter the device id" onChange={(e) => setDeviceId(e.target.value)} variant="flushed" mb={2} />
+            </Flex>
+          </ModalFooter>
+          {modalError && (
+            <ModalFooter pt={1}>
+              <Text textAlign="center" width="100%" color="red">
+                {modalError}
+              </Text>
             </ModalFooter>
-            {modalError &&
-              <ModalFooter pt={1}>
-                <Text textAlign="center" width="100%" color="red">{modalError}</Text>
-              </ModalFooter>
-            }
-            <ModalFooter justifyContent="center">
-              <ButtonGroup width="100%" maxW="420px">
+          )}
+          <ModalFooter justifyContent="center">
+            <ButtonGroup width="100%" maxW="420px">
               <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px" onClick={manualEntryClicked}>
-                  Enter manually
+                Enter manually
               </Button>
-              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber || !deviceId}>Link</Button>
-              </ButtonGroup>
-            </ModalFooter>
+              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber || !deviceId}>
+                Link
+              </Button>
+            </ButtonGroup>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
