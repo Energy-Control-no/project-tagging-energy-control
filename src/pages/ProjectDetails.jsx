@@ -46,15 +46,15 @@ const ProjectDetails = () => {
         }
 
         // Fetch additional Fieldwire project information
-        const fwResponse = await fetch(`https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_project_info?fw_id=${projectId}`);
-        const fwData = await fwResponse.json();
-        if (fwData) {
+        //const fwResponse = await fetch(`https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_project_info?fw_id=${projectId}`);
+        /*const fwData = await fwResponse.json();
+        if (fwData?) {
           setFwProjectData({
             fw_project_id: projectId,
-            num_tasks: fwData.num_tasks,
+            num_tasks: 0,
             fw_project_name: fwData.name
           });
-        }
+        }*/
       } catch (err) {
         setError('Failed to fetch project data.');
         console.error(err);
