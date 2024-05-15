@@ -25,13 +25,13 @@ const parseQRcodeText = (decodedText) => {
   }
 };
 
-const postAirthingsDevice = async (deviceDetails) => {
+const postAirthingsDevice = async (payload) => {
   const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(deviceDetails)
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -152,13 +152,16 @@ const Tasks = () => {
 
   const linkDevice = async ()  => {
     try {
-      const deviceDetails = {
-        id: deviceId,
-        name: selectedTaskForModal.name,
-        serialNumber: serialNumber
+      const payload = {
+        deviceInfo: {
+          deviceId: deviceId,
+          deviceName: selectedTaskForModal.name,
+          serialNumber: serialNumber,
+        },
+        fw_id: projectId
       }
 
-      const response = await postAirthingsDevice(deviceDetails);
+      const response = await postAirthingsDevice(payload);
   
       // Show successfully linked tasks in the task card
       const newLinkedTask = {
