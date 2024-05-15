@@ -56,7 +56,7 @@ const Tasks = () => {
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(false);
-  const [selectedFields, setSelectedFields] = useState(["sequence_number", "name"]); // Default fields
+  const [selectedFields, setSelectedFields] = useState(["sequence_number", "team_handle", "name", "team_name"]); // Default fields
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
   const serialNumberInputRef = useRef(null);
@@ -161,7 +161,7 @@ const Tasks = () => {
       const payload = {
         deviceInfo: {
           deviceId: deviceId,
-          deviceName: selectedTaskForModal.name,
+          deviceName: formatTaskDisplay(selectedTask),
           serialNumber: serialNumber,
         },
         fw_id: projectId,
@@ -207,13 +207,14 @@ const Tasks = () => {
   };
 
   const formatTaskDisplay = (task) => {
-    const sequenceNumber = task.sequence_number || "N/A";
-    const teamHandle = task.team_handle || "No device Handle";
-    const name = task.name || "Unnamed Task";
-    const teamName = task.team_name ? `[${task.team_name}]` : "(No device Name)";
-
-    return `#${sequenceNumber} - ${teamHandle} - ${name} ${teamName}`;
+    if (!task) {
+      return "Task data is not available";
+    }
+  
+    // Map over selectedFields and safely access each field in the task, providing a fallback if the field is undefined or null.
+    return `#${selectedFields.map(field => task[field] || 'N/A').join(" - ")}`;
   };
+  
 
   if (error) {
     return (
@@ -325,7 +326,7 @@ const Tasks = () => {
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader pb={0}>Linking Task {selectedTaskForModal?.name}</ModalHeader>
+          <ModalHeader pb={0}>Linking Task {formatTaskDisplay(selectedTaskForModal)}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Html5Qrcode fps={10} qrbox={250} disableFlip={false} qrCodeSuccessCallback={onNewScanResult} />
