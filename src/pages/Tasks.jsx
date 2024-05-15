@@ -55,7 +55,7 @@ const Tasks = () => {
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
-  const [showPrintingSection, setShowPrintingSection] = useState(false);
+  const [showPrintingSection, setShowPrintingSection] = useState(true);
   const [selectedFields, setSelectedFields] = useState(["sequence_number", "team_handle", "name", "team_name"]); // Default fields
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
