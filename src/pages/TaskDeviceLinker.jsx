@@ -16,7 +16,8 @@ const TaskDeviceLinker = ({ setSerialNumber, setDeviceId, linkDevice }) => {
 
   const parseInput = (value) => {
     const serialNumberMatch = value.match(/-([0-9]{10})_/); // Updated to match exactly 10 digits
-    const deviceIdMatch = value.match(/_id´([0-9]{6})/); // Match exactly 6 digits after "_id´"
+    // Match exactly 6 digits after "_id" considering both forward and back slashes
+    const deviceIdMatch = value.match(/_id.*([0-9]{6})/);
     console.log(serialNumberMatch, deviceIdMatch);
     console.log("serialNumberMatch[1]", serialNumberMatch);
     console.log("deviceIdMatch[1]", deviceIdMatch);
