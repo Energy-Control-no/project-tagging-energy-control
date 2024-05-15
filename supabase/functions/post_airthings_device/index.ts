@@ -25,7 +25,7 @@ serve(async (req) => {
 
   try {
     const requestData = await req.json();
-    const { fw_id, deviceInfo } = requestData;
+    const { fw_id, deviceInfo, fw_task_id } = requestData;
 
     // Validate required deviceInfo fields
     const requiredFields = ["serialNumber", "deviceId", "deviceName"]; // Adjust these fields as necessary
@@ -41,7 +41,7 @@ serve(async (req) => {
     if (error) throw new Error("Failed to fetch project data");
 
     // Combine locationId from the database with deviceInfo
-    //deviceInfo.locationId = projectData.at_locationId;
+    // deviceInfo.locationId = projectData.at_locationId;
 
     // Authenticate with Airthings
     const accessToken = await airthingsAuth({
@@ -77,6 +77,22 @@ serve(async (req) => {
     }
 
     const airthingsData = await airthingsResponse.json();
+       // Insert device data into Supabase 'devices' table
+       const { insertData, insertError } = await supabase
+       .from('devices')
+       .insert([
+         {
+           fw_id: fw_id,
+           created_at: new Date().toISOString(),
+           fw_task_id: fw_task_id,
+           at_serialNumber: deviceInfo.serialNumber,
+           at_deviceName: deviceInfo.deviceName
+         }
+       ]);
+ 
+     if (insertError) {
+       throw new Error(`Failed to insert device data into Supabase: ${insertError.message}`);
+     }
 
     return new Response(JSON.stringify({ message: "Device processed successfully", airthingsData }), { headers });
   } catch (err) {

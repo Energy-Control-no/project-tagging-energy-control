@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select} from '@chakra-ui/react';
-import { FaPrint, FaQrcode } from 'react-icons/fa';
-import Html5Qrcode from '/src/plugins/Html5QrcodePlugin.jsx';
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select } from "@chakra-ui/react";
+import { FaPrint, FaQrcode } from "react-icons/fa";
+import Html5Qrcode from "/src/plugins/Html5QrcodePlugin.jsx";
+import ProjectTaskList from "./ProjectTaskList.jsx";
 
 // Parse the QR code text to extract the serial number
 const parseQRcodeText = (decodedText) => {
@@ -26,10 +27,10 @@ const parseQRcodeText = (decodedText) => {
 };
 
 const postAirthingsDevice = async (payload) => {
-  const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device', {
-    method: 'POST',
+  const response = await fetch("https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
@@ -161,10 +162,11 @@ const Tasks = () => {
       const payload = {
         deviceInfo: {
           deviceId: deviceId,
-          deviceName: formatTaskDisplay(selectedTask),
+          deviceName: formatTaskDisplay(selectedTaskForModal),
           serialNumber: serialNumber,
         },
         fw_id: projectId,
+        fw_task_id: selectedTaskForModal.id,
       };
 
       const response = await postAirthingsDevice(payload);
@@ -210,11 +212,10 @@ const Tasks = () => {
     if (!task) {
       return "Task data is not available";
     }
-  
+
     // Map over selectedFields and safely access each field in the task, providing a fallback if the field is undefined or null.
-    return `#${selectedFields.map(field => task[field] || 'N/A').join(" - ")}`;
+    return `#${selectedFields.map((field) => task[field] || "N/A").join(" - ")}`;
   };
-  
 
   if (error) {
     return (
@@ -232,16 +233,18 @@ const Tasks = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Heading as="h2" size="md" mb={4}>Project Tasks: {projectName || projectId}</Heading>
+        <Heading as="h2" size="md" mb={4}>
+          Project Tasks: {projectName || projectId}
+        </Heading>
         <Button variant="link" onClick={togglePrintingSection}>
-          {showPrintingSection ? 'Hide Printing' : 'Print Labels'}
+          {showPrintingSection ? "Hide Printing" : "Print Labels"}
         </Button>
       </Box>
       {showPrintingSection && (
         <Box mb={6} p={4} border="1px solid #e2e8f0">
           <Box>
             <Text fontSize="xs" fontFamily="mono">
-              Label: #{selectedFields.map((field) => tasks[0][field]).join("-")}
+              Label: ${formatTaskDisplay(tasks[0])}
             </Text>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
@@ -289,39 +292,13 @@ const Tasks = () => {
         </Box>
       )}
 
-      <VStack align="stretch" spacing={4}>
-        {tasks.map((task) => {
-          // Check if the task is linked
-          const linkedTask = linkedTasks.find((linkedTask) => linkedTask.task.id === task.id);
-          return (
-            <Card key={task.id} mb={2} width="100%">
-              <CardBody p={4}>
-                <Flex>
-                  {showPrintingSection && (
-                    <Box>
-                      <Checkbox pr={4} isChecked={selectedTasks.has(task.id)} onChange={() => handleCheckboxChange(task.id)} />
-                    </Box>
-                  )}
-                  <Box flex="1" style={{ fontSize: "smaller" }}>
-                    <p>
-                      <b>{formatTaskDisplay(task)}</b>
-                    </p>
-                    <p>Created at: {new Date(task.created_at).toLocaleDateString()}</p>
-                  </Box>
-                  <IconButton icon={<FaQrcode />} ml={2} size="md" aria-label="Link Device" colorScheme="blue" onClick={() => openModal(task)} />
-                </Flex>
-              </CardBody>
-              {linkedTask && (
-                <CardFooter p={4} pt={0}>
-                  <Text fontSize="xs" color="green">
-                    Linked to: {linkedTask.serialNumber}
-                  </Text>
-                </CardFooter>
-              )}
-            </Card>
-          );
-        })}
-      </VStack>
+      <ProjectTaskList
+        tasks={tasks}
+        selectedTasks={selectedTasks}
+        handleCheckboxChange={handleCheckboxChange}
+        formatTaskDisplay={formatTaskDisplay}
+        openModal={openModal}
+        />
 
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
