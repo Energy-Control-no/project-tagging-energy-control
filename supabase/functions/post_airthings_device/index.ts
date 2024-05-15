@@ -71,11 +71,13 @@ serve(async (req) => {
     console.log("airthingsResponse", airthingsResponse);
     console.log("airthingsResponse.code", airthingsResponse.status);
     console.log("airthingsResponse.data", airthingsResponse.data);
+    console.log("airthingsResponse.ok", airthingsResponse.ok);
+
 
     if (!airthingsResponse.ok) {
       throw new Error("Failed to post device information to Airthings API");
     }
-
+    console.log("Inserting device data into Supabase...");
     const airthingsData = await airthingsResponse.json();
        // Insert device data into Supabase 'devices' table
        const { insertData, insertError } = await supabase
@@ -89,6 +91,8 @@ serve(async (req) => {
            at_deviceName: deviceInfo.deviceName
          }
        ]);
+       console.log("insertData", insertData);
+       console.log("insertError", insertError);
  
      if (insertError) {
        throw new Error(`Failed to insert device data into Supabase: ${insertError.message}`);
