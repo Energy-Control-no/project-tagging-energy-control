@@ -74,7 +74,7 @@ const Tasks = () => {
       const fetchTasks = async () => {
         setIsLoading(true);
         setError(null);
-        const url = new URL('https://wyq0d1.buildship.run/fieldwire_tasks');
+        const url = new URL('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_tasks');
         url.searchParams.append('project_id', projectId);
 
         try {
