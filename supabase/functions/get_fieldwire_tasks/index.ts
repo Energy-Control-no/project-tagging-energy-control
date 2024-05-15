@@ -1,4 +1,10 @@
 import { generateFieldwireToken } from "../_shared/fieldwire_api.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function fetchFieldwireTasks(token: string, project_id: string) {
   const tasksUrl =
@@ -41,19 +47,44 @@ async function fetchFieldwireTeamIds(token: string, project_id: string) {
   return await response.json();
 }
 
-const enrichTaskInfo = (tasks, teams) => {
+async function getTaskDeviceLinkStatus(projectId: string) {
+  try {
+
+      let { data, error } = await supabase
+          .from('devices')
+          .select('fw_id, created_at, fw_task_id, at_serialNumber, at_deviceName')
+          .eq('fw_id', projectId);
+
+      if (error) {
+          throw error;
+      }
+
+      return data;
+  } catch (err) {
+      console.error('Error fetching device link status:', err);
+      throw err;
+  }
+}
+
+
+const enrichTaskInfo = async (tasks, teams, project_id) => {
+  const devicesLinked = await getTaskDeviceLinkStatus(project_id);
+  console.log(devicesLinked);
   return tasks.map(task => {
     const team = teams.find(team => team.id === task.team_id);
+    const deviceInfo = devicesLinked.find(device => device.fw_task_id === task.id);
     if (team) {
       return {
         ...task,
         team_name: team.name,
         team_handle: team.handle,
+        deviceInfo: deviceInfo || null
       };
     }
     return task;
   });
 }
+
 
 Deno.serve(async (req) => {
   const headers = new Headers({
@@ -77,7 +108,7 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const project_id = url.searchParams.get("project_id");
-
+    console.log(`project_id: ${project_id}`);
     if (!project_id) {
       return new Response(JSON.stringify({ error: "Project ID is required" }), {
         status: 400,
@@ -87,9 +118,11 @@ Deno.serve(async (req) => {
     const token = await generateFieldwireToken();
     console.log(`token: ${token}`);
     const tasks = await fetchFieldwireTasks(token, project_id);
+    console.log("tasks:", tasks);
     const teams = await fetchFieldwireTeamIds(token, project_id);
-    const enrichedTasks = enrichTaskInfo(tasks, teams);
-
+    console.log("teams:", teams);
+    const enrichedTasks = await enrichTaskInfo(tasks, teams, project_id);
+    console.log("enrichedTasks:", enrichedTasks);
     return new Response(JSON.stringify({ tasks: enrichedTasks }), {
       status: 200,
       headers,
@@ -102,15 +135,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request GET 'http://127.0.0.1:54321/functions/v1/get_fieldwire_tasks' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"project_id":"098b8040-134a-46cd-88ce-814bdd447b9f"}'
-
-*/

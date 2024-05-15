@@ -171,13 +171,13 @@ const Tasks = () => {
 
       const response = await postAirthingsDevice(payload);
 
-      // Show successfully linked tasks in the task card
+      /* Show successfully linked tasks in the task card
       const newLinkedTask = {
         serialNumber: serialNumber,
         id: deviceId,
         task: selectedTaskForModal,
-      };
-      setLinkedTasks([...linkedTasks, newLinkedTask]);
+      };*/
+      //setLinkedTasks([...linkedTasks, newLinkedTask]);
       closeModal();
     } catch (error) {
       console.error("Failed to link device:", error);
@@ -301,6 +301,7 @@ const Tasks = () => {
         setSerialNumber={setSerialNumber}
         setDeviceId={setDeviceId}
         linkDevice={linkDevice}
+        setSelectedTaskForModal={setSelectedTaskForModal}
         />
 
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
