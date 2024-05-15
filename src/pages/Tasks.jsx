@@ -292,7 +292,7 @@ const Tasks = () => {
       <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
         <ModalOverlay />
         <ModalContent>
-            <ModalHeader>Linking Task {selectedTaskForModal?.name}</ModalHeader>
+            <ModalHeader pb={0}>Linking Task {selectedTaskForModal?.name}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
                 <Html5Qrcode
@@ -302,7 +302,7 @@ const Tasks = () => {
                 qrCodeSuccessCallback={onNewScanResult}
                 />
             </ModalBody>
-            <ModalFooter flexDirection="column">
+            <ModalFooter flexDirection="column" py={1}>
               <Flex direction="row" alignItems="center" width="100%" mb={2}>
                 <Text flex="1" fontWeight="bold" mr={3} mb={2}>Serial number:</Text>
                 <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" mb={2}/>
