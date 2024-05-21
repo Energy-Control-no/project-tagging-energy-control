@@ -46,13 +46,10 @@ const Tasks = () => {
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
-  const [linkedTasks, setLinkedTasks] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [error, setError] = useState(null);
-  const [modalError, setModalError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
@@ -149,14 +146,6 @@ const Tasks = () => {
     document.body.removeChild(link);
   };
 
-  const manualEntryClicked = () => {
-    if (serialNumberInputRef.current) {
-      const input = serialNumberInputRef.current;
-      input.focus();
-      input.select();
-    }
-  };
-
   const linkDevice = async () => {
     try {
       const payload = {
@@ -185,27 +174,12 @@ const Tasks = () => {
     }
   };
 
-  const openModal = (task) => {
-    // TO DO: unpause the camera if it exists
-    setSelectedTaskForModal(task);
-    setIsModalOpen(true);
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setSerialNumber(""); // Reset serialNumber state
     setDeviceId(""); // Reset deviceId state
     setModalError(null); // Reset error state to null
     // TO DO: pause the camera
-  };
-
-  const onNewScanResult = (decodedText, decodedResult) => {
-    const parsedText = parseQRcodeText(decodedText);
-    if (parsedText) {
-      setModalError(null); // Reset error state to null
-      setSerialNumber(parsedText.serialNumber);
-      setDeviceId(parsedText.deviceId);
-    }
   };
 
   const formatTaskDisplay = (task) => {
@@ -297,54 +271,11 @@ const Tasks = () => {
         selectedTasks={selectedTasks}
         handleCheckboxChange={handleCheckboxChange}
         formatTaskDisplay={formatTaskDisplay}
-        openModal={openModal}
         setSerialNumber={setSerialNumber}
         setDeviceId={setDeviceId}
         linkDevice={linkDevice}
         setSelectedTaskForModal={setSelectedTaskForModal}
         />
-
-      <Modal isOpen={isModalOpen} onClose={closeModal} size="full">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader pb={0}>Linking Task {formatTaskDisplay(selectedTaskForModal)}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {/* <Html5Qrcode fps={10} qrbox={250} disableFlip={false} qrCodeSuccessCallback={onNewScanResult} /> */}
-          </ModalBody>
-          <ModalFooter flexDirection="column" py={1}>
-            <Flex direction="row" alignItems="center" width="100%" mb={2}>
-              <Text flex="1" fontWeight="bold" mr={3} mb={2}>
-                Serial number:
-              </Text>
-              <Input ref={serialNumberInputRef} value={serialNumber} placeholder="Scan or enter the serial number" onChange={(e) => setSerialNumber(e.target.value)} variant="flushed" mb={2} />
-            </Flex>
-            <Flex direction="row" alignItems="center" width="100%" mb={2}>
-              <Text flex="1" fontWeight="bold" mr={3} mb={2}>
-                DeviceId:
-              </Text>
-              <Input value={deviceId} placeholder="Scan or enter the device id" onChange={(e) => setDeviceId(e.target.value)} variant="flushed" mb={2} />
-            </Flex>
-          </ModalFooter>
-          {modalError && (
-            <ModalFooter pt={1}>
-              <Text textAlign="center" width="100%" color="red">
-                {modalError}
-              </Text>
-            </ModalFooter>
-          )}
-          <ModalFooter justifyContent="center">
-            <ButtonGroup width="100%" maxW="420px">
-              <Button flex="1" colorScheme="gray" mr={2} px={4} py={2} h="48px" onClick={manualEntryClicked}>
-                Enter manually
-              </Button>
-              <Button flex="1" colorScheme="blue" px={4} py={2} h="48px" onClick={linkDevice} isDisabled={!serialNumber || !deviceId}>
-                Link
-              </Button>
-            </ButtonGroup>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };
