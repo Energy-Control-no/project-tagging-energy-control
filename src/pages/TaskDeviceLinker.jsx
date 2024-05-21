@@ -1,36 +1,29 @@
-// src/pages/TaskDeviceLinker.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Input, Button, Flex, Text } from "@chakra-ui/react";
+import { Input, Button, Flex, Text, Box, FormControl, FormLabel, Alert, AlertIcon } from "@chakra-ui/react";
 
-const TaskDeviceLinker = ({ setSerialNumber, setDeviceId, linkDevice }) => {
+const TaskDeviceLinker = ({ task, formattedTaskName }) => {
   const [inputValue, setInputValue] = useState('');
-  const [parsedSerialNumber, setParsedSerialNumber] = useState('');
-  const [parsedDeviceId, setParsedDeviceId] = useState('');
-  const inputRef = useRef(null); // Reference for the input element
+  const [serialNumber, setSerialNumberState] = useState('');
+  const [deviceId, setDeviceIdState] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.focus(); // Automatically focus the input field when it becomes visible
+      inputRef.current.focus();
     }
   }, []);
 
   const parseInput = (value) => {
-    const serialNumberMatch = value.match(/-([0-9]{10})_/); // Updated to match exactly 10 digits
-    // Match exactly 6 digits after "_id" considering both forward and back slashes
+    const serialNumberMatch = value.match(/-([0-9]{10})_/);
     const deviceIdMatch = value.match(/_id.*([0-9]{6})/);
-    console.log(serialNumberMatch, deviceIdMatch);
-    console.log("serialNumberMatch[1]", serialNumberMatch);
-    console.log("deviceIdMatch[1]", deviceIdMatch);
     if (serialNumberMatch && deviceIdMatch) {
-      const serialNumber = serialNumberMatch[1];
-      const deviceId = deviceIdMatch[1];
-      setSerialNumber(serialNumber);
-      setDeviceId(deviceId);
-      setParsedSerialNumber(serialNumber); // Store parsed serial number
-      setParsedDeviceId(deviceId); // Store parsed device ID
+      setSerialNumberState(serialNumberMatch[1]);
+      setDeviceIdState(deviceIdMatch[1]);
     } else {
-      setParsedSerialNumber(''); // Clear if no match
-      setParsedDeviceId(''); // Clear if no match
+      setSerialNumberState('');
+      setDeviceIdState('');
     }
   };
 
@@ -41,33 +34,96 @@ const TaskDeviceLinker = ({ setSerialNumber, setDeviceId, linkDevice }) => {
   };
 
   const handleSubmit = () => {
-    linkDevice();
-    setInputValue(''); // Clear input after submission
+    linkDevice(task, serialNumber, deviceId);
+    setInputValue('');
+  };
+
+  const postAirthingsDevice = async (payload) => {
+    const response = await fetch("https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add device");
+    }
+    return response.json();
+  };
+
+  const linkDevice = async (task, serialNumber, deviceId) => {
+    try {
+      const payload = {
+        deviceInfo: {
+          deviceId: deviceId,
+          deviceName: formattedTaskName,
+          serialNumber: serialNumber,
+        },
+        fw_id: task.project_id,
+        fw_task_id: task.id,
+      };
+
+      const response = await postAirthingsDevice(payload);
+      setMessage(response.message); // Set the success message
+      setError(''); // Clear any previous errors
+    } catch (error) {
+      console.error("Failed to link device:", error);
+      setError(error.message);
+      setMessage(''); // Clear any previous success message
+    }
   };
 
   return (
-    <Flex direction="column" align="center" justify="center" p={4}>
+    <Flex direction="column" align="center" justify="center" p={4} width="full">
       <Input
         ref={inputRef}
         placeholder="Scan QR-code..."
         value={inputValue}
         onChange={handleInputChange}
-        mb={2}
+        mb={4}
+        width="50%"
       />
-      <Text fontSize="md">Serial Number: {parsedSerialNumber}</Text>
-      <Text fontSize="md">Device ID: {parsedDeviceId}</Text>
+      <FormControl id="serial-number" mb={4} width="50%">
+        <FormLabel>Serial Number</FormLabel>
+        <Input
+          placeholder="Enter or scan Serial Number..."
+          value={serialNumber}
+          onChange={(e) => setSerialNumberState(e.target.value)}
+        />
+      </FormControl>
+      <FormControl id="device-id" mb={4} width="50%">
+        <FormLabel>Device ID</FormLabel>
+        <Input
+          placeholder="Enter or scan Device ID..."
+          value={deviceId}
+          onChange={(e) => setDeviceIdState(e.target.value)}
+        />
+      </FormControl>
       <Button
-        flex="1"
         colorScheme="blue"
         px={4}
         py={2}
         h="48px"
         onClick={handleSubmit}
-        isDisabled={!inputValue}
+        isDisabled={!serialNumber && !deviceId}
         mt={4}
       >
         Link Device
       </Button>
+      {message && (
+        <Alert status="success" mt={4}>
+          <AlertIcon />
+          {message}
+        </Alert>
+      )}
+      {error && (
+        <Alert status="error" mt={4}>
+          <AlertIcon />
+          {error}
+        </Alert>
+      )}
     </Flex>
   );
 };

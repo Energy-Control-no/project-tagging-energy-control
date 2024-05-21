@@ -26,21 +26,6 @@ const parseQRcodeText = (decodedText) => {
   }
 };
 
-const postAirthingsDevice = async (payload) => {
-  const response = await fetch("https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/post_airthings_device", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to add device");
-  }
-  return response.json();
-};
-
 const Tasks = () => {
   const navigate = useNavigate();
   const { projectId } = useParams();
@@ -146,34 +131,6 @@ const Tasks = () => {
     document.body.removeChild(link);
   };
 
-  const linkDevice = async () => {
-    try {
-      const payload = {
-        deviceInfo: {
-          deviceId: deviceId,
-          deviceName: formatTaskDisplay(selectedTaskForModal),
-          serialNumber: serialNumber,
-        },
-        fw_id: projectId,
-        fw_task_id: selectedTaskForModal.id,
-      };
-
-      const response = await postAirthingsDevice(payload);
-
-      /* Show successfully linked tasks in the task card
-      const newLinkedTask = {
-        serialNumber: serialNumber,
-        id: deviceId,
-        task: selectedTaskForModal,
-      };*/
-      //setLinkedTasks([...linkedTasks, newLinkedTask]);
-      closeModal();
-    } catch (error) {
-      console.error("Failed to link device:", error);
-      setModalError("Failed to link device. Try again.");
-    }
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setSerialNumber(""); // Reset serialNumber state
@@ -271,9 +228,6 @@ const Tasks = () => {
         selectedTasks={selectedTasks}
         handleCheckboxChange={handleCheckboxChange}
         formatTaskDisplay={formatTaskDisplay}
-        setSerialNumber={setSerialNumber}
-        setDeviceId={setDeviceId}
-        linkDevice={linkDevice}
         setSelectedTaskForModal={setSelectedTaskForModal}
         />
     </Box>

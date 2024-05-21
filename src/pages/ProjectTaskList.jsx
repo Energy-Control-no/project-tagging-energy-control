@@ -3,7 +3,7 @@ import { VStack, Card, CardBody, Flex, Box, Checkbox, Button, Link, Badge, useCo
 import { FaLink, FaCheckCircle } from 'react-icons/fa';
 import TaskDeviceLinker from './TaskDeviceLinker';
 
-const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSerialNumber, setDeviceId, linkDevice, setSelectedTaskForModal }) => {
+const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
   const [visibleLinkerTaskId, setVisibleLinkerTaskId] = useState(null);
 
   const borderColor = useColorModeValue('gray.200', 'gray.600');
@@ -62,9 +62,8 @@ const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTas
             </Flex>
             {visibleLinkerTaskId === task.id && (
               <TaskDeviceLinker
-                setSerialNumber={setSerialNumber}
-                setDeviceId={setDeviceId}
-                linkDevice={() => linkDevice(task.id)}
+                task={task}
+                formattedTaskName={formatTaskDisplay(task)}
               />
             )}
           </CardBody>

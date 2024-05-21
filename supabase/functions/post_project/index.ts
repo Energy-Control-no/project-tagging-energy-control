@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
     const projectData: ProjectData = await req.json();
 
     // Insert the data into the 'project' table
-    const { data, error } = await supabaseClient.from("project").insert([
+    const { data, error } = await supabaseClient.from("project").upsert([
       {
         fw_id: projectData.fw_id,
         at_client_id: projectData.at_client_id,
@@ -43,7 +43,9 @@ Deno.serve(async (req: Request) => {
         at_accountId: projectData.at_accountId,
         at_locationId: projectData.at_locationId,
       },
-    ]);
+    ], {
+      onConflict: "fw_id" // Specify the conflict target column, which is the primary key
+    });
 
     // Check for errors during the insert operation
     if (error) {
