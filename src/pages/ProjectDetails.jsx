@@ -143,7 +143,7 @@ const ProjectDetails = () => {
             {projectExists ? null : <Text color="red.500">Please fill in all fields to link Airthings.</Text>}
             <FormControl>
               <FormLabel htmlFor="apiClientId">API Client ID</FormLabel>
-              <Input id="apiClientId" placeholder="Enter API Client ID" />
+              <Input id="at_client_id" placeholder="Enter API Client ID" />
               <Text fontSize="sm" mt="2">
                 Go to the{" "}
                 <a href="https://dashboard.airthings.com/integrations/api-integration" target="_blank" rel="noopener noreferrer">
@@ -155,14 +155,14 @@ const ProjectDetails = () => {
 
             <FormControl mt="4">
               <FormLabel htmlFor="apiClientSecret">API Client Secret</FormLabel>
-              <Input id="apiClientSecret" placeholder="Enter API Client Secret" />
+              <Input id="at_client_secret" placeholder="Enter API Client Secret" />
               <Text fontSize="sm" mt="2">
                 After creating the API client, ensure it is active and copy the secret here. The client will also see this in their Airthings dashboard.
               </Text>
             </FormControl>
             <FormControl isRequired>
               <FormLabel htmlFor="airthingsAccountId">Airthings Account ID</FormLabel>
-              <Input id="airthingsAccountId" name="at_accountId" placeholder="Enter Airthings Account ID" />
+              <Input id="at_accountId" name="at_accountId" placeholder="Enter Airthings Account ID" />
               <Text fontSize="sm" mt="2">
                 Find the Account ID on the{" "}
                 <Link href="https://dashboard.airthings.com/integrations" isExternal color="teal.500">
@@ -173,7 +173,7 @@ const ProjectDetails = () => {
             </FormControl>
             <FormControl isRequired>
               <FormLabel htmlFor="airthingsLocationId">Airthings Location ID (Building ID)</FormLabel>
-              <Input id="airthingsLocationId" name="at_locationId" placeholder="Enter Airthings Location ID" />
+              <Input id="at_locationId" name="at_locationId" placeholder="Enter Airthings Location ID" />
               <Text fontSize="sm" mt="2">
                 To find the Location ID, go to the{" "}
                 <Link href="https://dashboard.airthings.com/buildings" isExternal color="teal.500">
