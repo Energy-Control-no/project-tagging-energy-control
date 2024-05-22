@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack } from "@chakra-ui/react";
+import { Flex, Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack } from "@chakra-ui/react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const ProjectDetails = () => {
@@ -103,14 +103,19 @@ const ProjectDetails = () => {
         Project: {fwProjectData.fw_project_name || projectId}
       </Heading>
       {error && <Alert status="error">{error}</Alert>}
+      <Flex justifyContent="space-between" mt={4} mb={4}>
+        <Button colorScheme="blue" size="lg" variant="outline" p={4} onClick={() => navigate(`/project/${projectId}/tasks?name=${encodeURIComponent(fwProjectData.fw_project_name)}`)}>
+          Open task list
+        </Button>
+        <Link href="https://www.loom.com/share/95a42d5de552416c9415b55c50b5ea75?sid=f0ff8f0a-a74b-4f0f-9d9d-e6685d559327" isExternal>
+          <Button colorScheme="blue" size="lg" p={4} leftIcon={<i className="fas fa-video"></i>}>
+            Watch Tutorial 🎥
+          </Button>
+        </Link>
+      </Flex>
       <form onSubmit={handleSubmit}>
         <VStack spacing={4} align="stretch">
           <Box>
-            <Box display="flex" justifyContent="space-between" mt={4} mb={4}>
-              <Button colorScheme="blue" size="lg" variant="outline" p={4} onClick={() => navigate(`/project/${projectId}/tasks?name=${encodeURIComponent(fwProjectData.fw_project_name)}`)}>
-                Open tasks
-              </Button>
-            </Box>
             <Box>
               <Heading as="h3" size="lg" mb={2}>
                 Fieldwire Project Information
