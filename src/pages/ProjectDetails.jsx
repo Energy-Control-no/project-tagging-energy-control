@@ -8,6 +8,10 @@ const ProjectDetails = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const projectName = queryParams.get("name");
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [accountId, setAccountId] = useState("");
+  const [locationId, setLocationId] = useState("");
 
   const [projectData, setProjectData] = useState({
     at_client_id: "",
@@ -41,6 +45,10 @@ const ProjectDetails = () => {
         if (data.length > 0) {
           setProjectData(data[0]);
           setProjectExists(true);
+          setClientId(data.at_client_id);
+          setClientSecret(data.at_client_secret);
+          setAccountId(data.at_accountId);
+          setLocationId(data.at_locationId);
         } else {
           setError("No project has been established yet.");
         }
@@ -66,8 +74,12 @@ const ProjectDetails = () => {
   }, [projectId]);
 
   const handleInputChange = (e) => {
-    setProjectData({ ...projectData, [e.target.name]: e.target.value });
-  };
+    const { name, value } = e.target;
+    setProjectData(prevState => ({
+        ...prevState,
+        [name]: value
+    }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,8 +155,13 @@ const ProjectDetails = () => {
             {projectExists ? null : <Text color="red.500">Please fill in all fields to link Airthings.</Text>}
             <FormControl>
               <FormLabel htmlFor="apiClientId">API Client ID</FormLabel>
-              <Input id="at_client_id" value={projectData.at_client_id} placeholder="Enter API Client ID" />
-              <Text fontSize="sm" mt="2">
+              <Input
+    id="at_client_id"
+    name="at_client_id"
+    value={projectData.at_client_id}
+    onChange={handleInputChange}
+    placeholder="Enter API Client ID"
+/>              <Text fontSize="sm" mt="2">
                 Go to the{" "}
                 <a href="https://dashboard.airthings.com/integrations/api-integration" target="_blank" rel="noopener noreferrer">
                   Airthings client account
@@ -155,15 +172,25 @@ const ProjectDetails = () => {
 
             <FormControl mt="4">
               <FormLabel htmlFor="apiClientSecret">API Client Secret</FormLabel>
-              <Input id="at_client_secret" value={projectData.at_client_secret} placeholder="Enter API Client Secret" />
-              <Text fontSize="sm" mt="2">
+              <Input
+    id="at_client_secret"
+    name="at_client_secret"
+    value={projectData.at_client_secret}
+    onChange={handleInputChange}
+    placeholder="Enter API Client Secret"
+/>              <Text fontSize="sm" mt="2">
                 After creating the API client, ensure it is active and copy the secret here. The client will also see this in their Airthings dashboard.
               </Text>
             </FormControl>
             <FormControl isRequired>
               <FormLabel htmlFor="airthingsAccountId">Airthings Account ID</FormLabel>
-              <Input id="at_accountId" value={projectData.at_accountId}  name="at_accountId" placeholder="Enter Airthings Account ID" />
-              <Text fontSize="sm" mt="2">
+              <Input
+    id="at_accountId"
+    name="at_accountId"
+    value={projectData.at_accountId}
+    onChange={handleInputChange}
+    placeholder="Enter Airthings Account ID"
+/>              <Text fontSize="sm" mt="2">
                 Find the Account ID on the{" "}
                 <Link href="https://dashboard.airthings.com/integrations" isExternal color="teal.500">
                   Airthings Integrations page
@@ -173,8 +200,13 @@ const ProjectDetails = () => {
             </FormControl>
             <FormControl isRequired>
               <FormLabel htmlFor="airthingsLocationId">Airthings Location ID (Building ID)</FormLabel>
-              <Input id="at_locationId" value={projectData.at_locationId} name="at_locationId" placeholder="Enter Airthings Location ID" />
-              <Text fontSize="sm" mt="2">
+              <Input
+    id="at_locationId"
+    name="at_locationId"
+    value={projectData.at_locationId}
+    onChange={handleInputChange}
+    placeholder="Enter Airthings Location ID"
+/>              <Text fontSize="sm" mt="2">
                 To find the Location ID, go to the{" "}
                 <Link href="https://dashboard.airthings.com/buildings" isExternal color="teal.500">
                   Airthings dashboard
