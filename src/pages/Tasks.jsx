@@ -39,7 +39,11 @@ const Tasks = () => {
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
-  const [selectedFields, setSelectedFields] = useState(["sequence_number", "team_handle", "name", "team_name"]); // Default fields
+  const [selectedFields, setSelectedFields] = useState(() => {
+    // Read from local storage or use default fields
+    const savedFields = localStorage.getItem("selectedFields");
+    return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
+  });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
   const serialNumberInputRef = useRef(null);
@@ -56,6 +60,11 @@ const Tasks = () => {
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
   };
+
+  useEffect(() => {
+    // Save selectedFields to local storage whenever it changes
+    localStorage.setItem("selectedFields", JSON.stringify(selectedFields));
+  }, [selectedFields]);
 
   useEffect(() => {
     console.log("Fetching tasks for project:", projectId);
@@ -223,13 +232,7 @@ const Tasks = () => {
         </Box>
       )}
 
-      <ProjectTaskList
-        tasks={tasks}
-        selectedTasks={selectedTasks}
-        handleCheckboxChange={handleCheckboxChange}
-        formatTaskDisplay={formatTaskDisplay}
-        setSelectedTaskForModal={setSelectedTaskForModal}
-        />
+      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} setSelectedTaskForModal={setSelectedTaskForModal} />
     </Box>
   );
 };
