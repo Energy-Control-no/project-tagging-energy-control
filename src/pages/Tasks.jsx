@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select } from "@chakra-ui/react";
-import { FaPrint, FaHashtag, FaRegEyeSlash } from "react-icons/fa";
+import { FaPrint, FaHashtag, FaSlash } from "react-icons/fa";
 import Html5Qrcode from "/src/plugins/Html5QrcodePlugin.jsx";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
@@ -196,7 +196,7 @@ const Tasks = () => {
             </Text>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
-                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaRegEyeSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
+                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
               </Flex>
               {selectedFields.map((field, index) => (
                 <>
