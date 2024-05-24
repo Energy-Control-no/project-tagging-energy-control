@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select } from "@chakra-ui/react";
-import { FaPrint, FaQrcode } from "react-icons/fa";
+import { FaPrint, FaHashtag, FaRegEyeSlash } from "react-icons/fa";
 import Html5Qrcode from "/src/plugins/Html5QrcodePlugin.jsx";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
@@ -39,6 +39,7 @@ const Tasks = () => {
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
+  const [isHashSelected, setIsHashSelected] = useState(true);
   const [selectedFields, setSelectedFields] = useState(() => {
     // Read from local storage or use default fields
     const savedFields = localStorage.getItem("selectedFields");
@@ -113,6 +114,10 @@ const Tasks = () => {
     setSelectedFields(newSelectedFields);
   };
 
+  const handleHashClick = () => {
+    setIsHashSelected(!isHashSelected);
+  };
+
   const addField = () => {
     setSelectedFields([...selectedFields, ""]); // Add a new field with empty value
   };
@@ -126,7 +131,7 @@ const Tasks = () => {
   const exportToCSV = () => {
     const selectedTaskData = tasks.filter((task) => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
-    const csvContent = selectedTaskData.map((task) => "#" + selectedFields.map((field) => task[field]).join("-")).join("\n");
+    const csvContent = selectedTaskData.map((task) => (isHashSelected ? "#" : "") + selectedFields.map((field) => task[field]).join("-")).join("\n");
     const csvData = csvHeader + csvContent;
 
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
@@ -154,7 +159,10 @@ const Tasks = () => {
     }
 
     // Map over selectedFields and safely access each field in the task, providing a fallback if the field is undefined or null.
-    return `#${selectedFields.map((field) => task[field] || "N/A").join(" - ")}`;
+    const taskString = selectedFields.map((field) => task[field] || "N/A").join(" - ");
+  
+    // If isHashSelected is true, add "#" at the beginning of the string
+    return isHashSelected ? `#${taskString}` : taskString;
   };
 
   if (error) {
@@ -184,11 +192,11 @@ const Tasks = () => {
         <Box mb={6} p={4} border="1px solid #e2e8f0">
           <Box>
             <Text fontSize="xs" fontFamily="mono">
-              Label: ${formatTaskDisplay(tasks[0])}
+              Label: {formatTaskDisplay(tasks[0])}
             </Text>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
-                <Text fontSize="sm"># </Text>
+                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaRegEyeSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
               </Flex>
               {selectedFields.map((field, index) => (
                 <>
