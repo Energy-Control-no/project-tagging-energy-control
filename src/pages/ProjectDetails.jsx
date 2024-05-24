@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Flex, Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack } from "@chakra-ui/react";
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { FIELDWIRE_CONSTANTS } from '../constants/Fieldwire.constants';
+
 
 const ProjectDetails = () => {
   const navigate = useNavigate();
@@ -149,7 +151,7 @@ const ProjectDetails = () => {
               <Text fontWeight="bold" marginBottom="4px">
                 Fieldwire Project Link
               </Text>
-              <Button as="a" href={`https://app.fieldwire.com/#!/projects/${fwProjectData.fw_project_id}/plans?lang=en`} target="_blank" rel="noopener noreferrer" rightIcon={<ArrowForwardIcon />} colorScheme="teal" variant="outline">
+              <Button as="a" href={FIELDWIRE_CONSTANTS.getProjectUrl(fwProjectData.fw_project_id)} target="_blank" rel="noopener noreferrer" rightIcon={<ArrowForwardIcon />} colorScheme="teal" variant="outline">
                 Open Fieldwire Project
               </Button>
             </Box>
