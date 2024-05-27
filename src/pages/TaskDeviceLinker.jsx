@@ -16,15 +16,23 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
   }, []);
 
   const parseInput = (value) => {
-    const serialNumberMatch = value.match(/-([0-9]{10})_/);
-    const deviceIdMatch = value.match(/_id.*([0-9]{6})/);
-    if (serialNumberMatch && deviceIdMatch) {
-      setSerialNumberState(serialNumberMatch[1]);
-      setDeviceIdState(deviceIdMatch[1]);
-    } else {
-      setSerialNumberState('');
-      setDeviceIdState('');
+    let serialNumberMatch = "";
+    let deviceIdMatch = "";
+    switch (true) {
+      case /\d+\s[A-Z]+/.test(value): // matches: 2969020562 KKXSYYT
+        serialNumberMatch = value.slice(0, 10);
+        deviceIdMatch = value.slice(11, 18);
+        break;
+      case /^\d+$/.test(value): // 029301597170
+        serialNumberMatch = value;
+        break;
+      case /airthin.gs/.test(value): // httpsØ–a.airthin.gs-3130000781_id\803142
+        serialNumberMatch = value.match(/[0-9]{10}/)[0];
+        deviceIdMatch = value.match(/\d+$/)[0];
+        break;
     }
+    setSerialNumberState(serialNumberMatch ? serialNumberMatch : "");
+    setDeviceIdState(deviceIdMatch ? deviceIdMatch : "")
   };
 
   const handleInputChange = (event) => {
