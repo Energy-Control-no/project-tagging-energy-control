@@ -39,10 +39,12 @@ const Tasks = () => {
   const [serialNumber, setSerialNumber] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
-  const [isHashSelected, setIsHashSelected] = useState(true);
+  const [isHashSelected, setIsHashSelected] = useState(() => {
+    const savedHashField = localStorage.getItem("savedHashField"); // Read from local storage or use default value
+    return savedHashField ? JSON.parse(savedHashField) : true;
+  });
   const [selectedFields, setSelectedFields] = useState(() => {
-    // Read from local storage or use default fields
-    const savedFields = localStorage.getItem("selectedFields");
+    const savedFields = localStorage.getItem("selectedFields"); // Read from local storage or use default fields
     return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
@@ -61,6 +63,11 @@ const Tasks = () => {
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
   };
+
+  useEffect(() => {
+    // Save isHashSelected to local storage whenever it changes
+    localStorage.setItem("savedHashField", JSON.stringify(isHashSelected));
+  }, [isHashSelected]);
 
   useEffect(() => {
     // Save selectedFields to local storage whenever it changes
