@@ -1,33 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select } from "@chakra-ui/react";
+import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select } from "@chakra-ui/react";
 import { FaPrint, FaHashtag, FaSlash } from "react-icons/fa";
-import Html5Qrcode from "/src/plugins/Html5QrcodePlugin.jsx";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
-// Parse the QR code text to extract the serial number
-const parseQRcodeText = (decodedText) => {
-  if (decodedText.includes("gs/")) {
-    const parts = decodedText.split(/gs\/(.*?)\?id/); // parsing format: https://a.airthin.gs/123123123?id=232432
-    const idParts = parts[2]?.split(/&|=/); // Split by '&' or '=' to handle case where there are more query parameters after 'id'
-    return {
-      serialNumber: parts[1],
-      deviceId: idParts ? idParts[1] : null, // The id is the second part after splitting by '&' or '='
-    };
-  } else {
-    const parts = decodedText.split(/(\d+)/); // parsing format: 2820001088 AZVZVVA
-    if (parts.length === 3) {
-      return {
-        serialNumber: parts[1],
-        deviceId: parts[2].trim(),
-      };
-    }
-    return null; // Handle case where pattern doesn't match
-  }
-};
-
 const Tasks = () => {
-  const navigate = useNavigate();
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
@@ -35,9 +12,6 @@ const Tasks = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
-  const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
-  const [serialNumber, setSerialNumber] = useState("");
-  const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
   const [isHashSelected, setIsHashSelected] = useState(() => {
     const savedHashField = localStorage.getItem("savedHashField-"+projectId); // Read from local storage or use default value
@@ -49,16 +23,9 @@ const Tasks = () => {
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
-  const serialNumberInputRef = useRef(null);
-
   // Parse the URL query parameters
   const queryParams = new URLSearchParams(location.search);
   const projectName = queryParams.get("name"); // Assuming 'name' is the query parameter
-
-  // Function to navigate back to Project Details
-  const handleBackClick = () => {
-    navigate(`/project/${projectId}/details`);
-  };
 
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
@@ -152,14 +119,6 @@ const Tasks = () => {
     document.body.removeChild(link);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSerialNumber(""); // Reset serialNumber state
-    setDeviceId(""); // Reset deviceId state
-    setModalError(null); // Reset error state to null
-    // TO DO: pause the camera
-  };
-
   const formatTaskDisplay = (task) => {
     if (!task) {
       return "Task data is not available";
@@ -247,7 +206,7 @@ const Tasks = () => {
         </Box>
       )}
 
-      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} setSelectedTaskForModal={setSelectedTaskForModal} />
+      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
     </Box>
   );
 };
