@@ -40,11 +40,11 @@ const Tasks = () => {
   const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
   const [isHashSelected, setIsHashSelected] = useState(() => {
-    const savedHashField = localStorage.getItem("savedHashField"); // Read from local storage or use default value
+    const savedHashField = localStorage.getItem("savedHashField-"+projectId); // Read from local storage or use default value
     return savedHashField ? JSON.parse(savedHashField) : true;
   });
   const [selectedFields, setSelectedFields] = useState(() => {
-    const savedFields = localStorage.getItem("selectedFields"); // Read from local storage or use default fields
+    const savedFields = localStorage.getItem("selectedFields-"+projectId); // Read from local storage or use default fields
     return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
@@ -66,12 +66,12 @@ const Tasks = () => {
 
   useEffect(() => {
     // Save isHashSelected to local storage whenever it changes
-    localStorage.setItem("savedHashField", JSON.stringify(isHashSelected));
+    localStorage.setItem("savedHashField-"+projectId, JSON.stringify(isHashSelected));
   }, [isHashSelected]);
 
   useEffect(() => {
     // Save selectedFields to local storage whenever it changes
-    localStorage.setItem("selectedFields", JSON.stringify(selectedFields));
+    localStorage.setItem("selectedFields-"+projectId, JSON.stringify(selectedFields));
   }, [selectedFields]);
 
   useEffect(() => {
