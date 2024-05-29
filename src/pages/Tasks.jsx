@@ -1,33 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Card, CardBody, Flex, Checkbox, Button, Box, VStack, Heading, Alert, AlertIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Center, Text, ModalFooter, Popover, ButtonGroup, IconButton, Input, CardFooter, Select } from "@chakra-ui/react";
-import { FaPrint, FaQrcode } from "react-icons/fa";
-import Html5Qrcode from "/src/plugins/Html5QrcodePlugin.jsx";
+import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select } from "@chakra-ui/react";
+import { FaPrint, FaHashtag, FaSlash } from "react-icons/fa";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
-// Parse the QR code text to extract the serial number
-const parseQRcodeText = (decodedText) => {
-  if (decodedText.includes("gs/")) {
-    const parts = decodedText.split(/gs\/(.*?)\?id/); // parsing format: https://a.airthin.gs/123123123?id=232432
-    const idParts = parts[2]?.split(/&|=/); // Split by '&' or '=' to handle case where there are more query parameters after 'id'
-    return {
-      serialNumber: parts[1],
-      deviceId: idParts ? idParts[1] : null, // The id is the second part after splitting by '&' or '='
-    };
-  } else {
-    const parts = decodedText.split(/(\d+)/); // parsing format: 2820001088 AZVZVVA
-    if (parts.length === 3) {
-      return {
-        serialNumber: parts[1],
-        deviceId: parts[2].trim(),
-      };
-    }
-    return null; // Handle case where pattern doesn't match
-  }
-};
-
 const Tasks = () => {
-  const navigate = useNavigate();
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
@@ -35,35 +12,33 @@ const Tasks = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
-  const [selectedTaskForModal, setSelectedTaskForModal] = useState(null);
-  const [serialNumber, setSerialNumber] = useState("");
-  const [deviceId, setDeviceId] = useState("");
   const [showPrintingSection, setShowPrintingSection] = useState(true);
+  const [isHashSelected, setIsHashSelected] = useState(() => {
+    const savedHashField = localStorage.getItem("savedHashField-"+projectId); // Read from local storage or use default value
+    return savedHashField ? JSON.parse(savedHashField) : true;
+  });
   const [selectedFields, setSelectedFields] = useState(() => {
-    // Read from local storage or use default fields
-    const savedFields = localStorage.getItem("selectedFields");
+    const savedFields = localStorage.getItem("selectedFields-"+projectId); // Read from local storage or use default fields
     return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
 
-  const serialNumberInputRef = useRef(null);
-
   // Parse the URL query parameters
   const queryParams = new URLSearchParams(location.search);
   const projectName = queryParams.get("name"); // Assuming 'name' is the query parameter
-
-  // Function to navigate back to Project Details
-  const handleBackClick = () => {
-    navigate(`/project/${projectId}/details`);
-  };
 
   const togglePrintingSection = () => {
     setShowPrintingSection(!showPrintingSection);
   };
 
   useEffect(() => {
+    // Save isHashSelected to local storage whenever it changes
+    localStorage.setItem("savedHashField-"+projectId, JSON.stringify(isHashSelected));
+  }, [isHashSelected]);
+
+  useEffect(() => {
     // Save selectedFields to local storage whenever it changes
-    localStorage.setItem("selectedFields", JSON.stringify(selectedFields));
+    localStorage.setItem("selectedFields-"+projectId, JSON.stringify(selectedFields));
   }, [selectedFields]);
 
   useEffect(() => {
@@ -113,6 +88,10 @@ const Tasks = () => {
     setSelectedFields(newSelectedFields);
   };
 
+  const handleHashClick = () => {
+    setIsHashSelected(!isHashSelected);
+  };
+
   const addField = () => {
     setSelectedFields([...selectedFields, ""]); // Add a new field with empty value
   };
@@ -126,7 +105,7 @@ const Tasks = () => {
   const exportToCSV = () => {
     const selectedTaskData = tasks.filter((task) => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
-    const csvContent = selectedTaskData.map((task) => "#" + selectedFields.map((field) => task[field]).join("-")).join("\n");
+    const csvContent = selectedTaskData.map((task) => (isHashSelected ? "#" : "") + selectedFields.map((field) => task[field]).join("-")).join("\n");
     const csvData = csvHeader + csvContent;
 
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
@@ -140,21 +119,16 @@ const Tasks = () => {
     document.body.removeChild(link);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSerialNumber(""); // Reset serialNumber state
-    setDeviceId(""); // Reset deviceId state
-    setModalError(null); // Reset error state to null
-    // TO DO: pause the camera
-  };
-
   const formatTaskDisplay = (task) => {
     if (!task) {
       return "Task data is not available";
     }
 
     // Map over selectedFields and safely access each field in the task, providing a fallback if the field is undefined or null.
-    return `#${selectedFields.map((field) => task[field] || "N/A").join(" - ")}`;
+    const taskString = selectedFields.map((field) => task[field] || "N/A").join(" - ");
+  
+    // If isHashSelected is true, add "#" at the beginning of the string
+    return isHashSelected ? `#${taskString}` : taskString;
   };
 
   if (error) {
@@ -184,11 +158,11 @@ const Tasks = () => {
         <Box mb={6} p={4} border="1px solid #e2e8f0">
           <Box>
             <Text fontSize="xs" fontFamily="mono">
-              Label: ${formatTaskDisplay(tasks[0])}
+              Label: {formatTaskDisplay(tasks[0])}
             </Text>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
-                <Text fontSize="sm"># </Text>
+                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
               </Flex>
               {selectedFields.map((field, index) => (
                 <>
@@ -232,7 +206,7 @@ const Tasks = () => {
         </Box>
       )}
 
-      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} setSelectedTaskForModal={setSelectedTaskForModal} />
+      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
     </Box>
   );
 };
