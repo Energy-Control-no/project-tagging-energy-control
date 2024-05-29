@@ -8,6 +8,7 @@ const Tasks = () => {
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
+  const [taskStatuses, setTaskStatuses] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +57,15 @@ const Tasks = () => {
           if (data.tasks) {
             setTasks(data.tasks);
             setTaskFields(data.tasks.length > 0 ? Object.keys(data.tasks[0]) : []); // Generate taskFields dynamically
+
+            const uniqueStatuses = data.tasks.reduce((statuses, task) => { // Create a list of unique status objects
+              if (!statuses.some(s => s.id === task.status_id)) {
+                statuses.push({id: task.status_id, name: task.status_name});
+              }
+              return statuses;
+            }, []);
+
+            setTaskStatuses(uniqueStatuses);
             setLastFetchedId(projectId); // Update last fetched ID after successful fetch
           } else {
             throw new Error("No tasks found");
@@ -70,7 +80,7 @@ const Tasks = () => {
 
       fetchTasks();
     }
-  }, [projectId]); // Include lastFetchedId in the dependency array
+  }, [projectId]); 
 
   const handleCheckboxChange = (taskId) => {
     const newSelectedTasks = new Set(selectedTasks);
@@ -206,7 +216,7 @@ const Tasks = () => {
         </Box>
       )}
 
-      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
+      <ProjectTaskList tasks={tasks} taskStatuses={taskStatuses} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
     </Box>
   );
 };

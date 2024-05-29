@@ -47,6 +47,27 @@ async function fetchFieldwireTeamIds(token: string, project_id: string) {
   return await response.json();
 }
 
+async function fetchFieldwireStatuses(token: string, project_id: string) {
+  const taskStatusesUrl =
+    `https://client-api.us.fieldwire.com/api/v3/projects/${project_id}/statuses`;
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      "Fieldwire-Version": "2024-01-01",
+      "Fieldwire-Per-Page": "1000",
+      "Fieldwire-Filter": "active",
+      authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await fetch(taskStatusesUrl, options);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch task statuses for project ${project_id}`);
+  }
+  return await response.json();
+}
+
 async function getTaskDeviceLinkStatus(projectId: string) {
   try {
 
@@ -67,21 +88,20 @@ async function getTaskDeviceLinkStatus(projectId: string) {
 }
 
 
-const enrichTaskInfo = async (tasks, teams, project_id) => {
+const enrichTaskInfo = async (tasks: any[], teams: any[], statuses: any[], project_id: string) => {
   const devicesLinked = await getTaskDeviceLinkStatus(project_id);
   console.log(devicesLinked);
   return tasks.map(task => {
     const team = teams.find(team => team.id === task.team_id);
-    const deviceInfo = devicesLinked.find(device => device.fw_task_id === task.id);
-    if (team) {
-      return {
-        ...task,
-        team_name: team.name,
-        team_handle: team.handle,
-        deviceInfo: deviceInfo || null
-      };
-    }
-    return task;
+    const status = statuses.find(status => status.id === task.status_id);
+    const deviceInfo = devicesLinked ? devicesLinked.find(device => device.fw_task_id === task.id) : null;
+    return {
+      ...task,
+      team_name: team ? team.name : null,
+      team_handle: team ?  team.handle : null,
+      status_name: status? status.name : null,
+      deviceInfo: deviceInfo || null
+    };
   });
 }
 
@@ -121,7 +141,9 @@ Deno.serve(async (req) => {
     console.log("tasks:", tasks);
     const teams = await fetchFieldwireTeamIds(token, project_id);
     console.log("teams:", teams);
-    const enrichedTasks = await enrichTaskInfo(tasks, teams, project_id);
+    const statuses = await fetchFieldwireStatuses(token, project_id);
+    console.log("teams:", teams);
+    const enrichedTasks = await enrichTaskInfo(tasks, teams, statuses, project_id);
     console.log("enrichedTasks:", enrichedTasks);
     return new Response(JSON.stringify({ tasks: enrichedTasks }), {
       status: 200,
