@@ -112,21 +112,25 @@ const Tasks = () => {
     }
   };
 
+  const downloadCSV = (filename, csvData) => {
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const exportToCSV = () => {
     const selectedTaskData = tasks.filter((task) => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
     const csvContent = selectedTaskData.map((task) => (isHashSelected ? "#" : "") + selectedFields.map((field) => task[field]).join("-")).join("\n");
     const csvData = csvHeader + csvContent;
 
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "tasks.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCSV("tasks.csv", csvData);
   };
 
   const flattenDeviceInfoObject = (obj, keys, prefix = '') => {
@@ -163,15 +167,7 @@ const Tasks = () => {
     }).join("\n");
     const csvData = csvHeader + csvContent;
   
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "all_tasks.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCSV("all_tasks.csv", csvData);
   };
 
   const formatTaskDisplay = (task) => {
