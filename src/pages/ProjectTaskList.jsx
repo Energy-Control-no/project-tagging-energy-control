@@ -60,7 +60,10 @@ const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTas
 
   return (
     <VStack align="stretch" spacing={4}>
-      <ProjectTaskFilter taskStatuses={taskStatuses} taskCategories={taskCategories} onSelectedStatusesChange={handleStatusChange} onSelectedCategoriesChange={handleCategoryChange}></ProjectTaskFilter> 
+      <Flex justifyContent="space-between" alignItems="flex-end" width="100%">
+        <ProjectTaskFilter taskStatuses={taskStatuses} taskCategories={taskCategories} onSelectedStatusesChange={handleStatusChange} onSelectedCategoriesChange={handleCategoryChange}></ProjectTaskFilter> 
+        <Text fontSize="sm" color="gray.500">({sortedTasks.length})</Text>
+      </Flex>
       {sortedTasks.map((task) => (
         <Card key={task.id} mb={2} width="100%" borderLeftWidth="5px" borderLeftColor={task.deviceInfo ? linkedColor : borderColor} style={{ padding: '10px', margin: '5px' }}>
           <CardBody p={4}>
