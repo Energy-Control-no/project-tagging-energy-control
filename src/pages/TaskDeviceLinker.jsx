@@ -7,6 +7,8 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
   const [deviceId, setDeviceIdState] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [serialNumberWarning, setSerialNumberWarning] = useState('');
+  const [deviceIdWarning, setDeviceIdWarning] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -16,14 +18,42 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
   }, []);
 
   const parseInput = (value) => {
-    const serialNumberMatch = value.match(/-([0-9]{10})_/);
-    const deviceIdMatch = value.match(/_id.*([0-9]{6})/);
-    if (serialNumberMatch && deviceIdMatch) {
-      setSerialNumberState(serialNumberMatch[1]);
-      setDeviceIdState(deviceIdMatch[1]);
+    let serialNumberMatch = "";
+    let deviceIdMatch = "";
+    switch (true) {
+      case /\d{10,} [A-Z0-9]{7}/.test(value): // matches: 2969020562 KKXSYYT
+        serialNumberMatch = value.slice(0, 10);
+        deviceIdMatch = value.slice(11, 18);
+        break;
+      case /^\d+$/.test(value): // 029301597170
+        serialNumberMatch = value.replace(/^0+|0+$/g, '');
+        break;
+      case /airthin.gs/.test(value): // httpsØ–a.airthin.gs-3130000781_id\803142
+        serialNumberMatch = value.match(/[0-9]{10}/)[0];
+        deviceIdMatch = value.match(/\d+$/)[0];
+        break;
+    }
+    setSerialNumberState(serialNumberMatch);
+    checkSerialNumber(serialNumberMatch);
+    setDeviceIdState(deviceIdMatch)
+    checkDeviceId(deviceIdMatch);
+  };
+
+  // Checks the serial number length
+  const checkSerialNumber = (value) => {
+    if (!/^\d{10}$/.test(value) && value !== "") {
+      setSerialNumberWarning('Serial number must be 10 digits'); // Set the warning message
     } else {
-      setSerialNumberState('');
-      setDeviceIdState('');
+      setSerialNumberWarning(''); // Clear the warning message
+    }
+  };
+
+  // Checks the device ID length and format
+  const checkDeviceId = (value) => {
+    if (!/^[A-Z0-9]{7}$/i.test(value) && value !== "") {
+      setDeviceIdWarning('Device ID must be 7 characters (numbers or letters)'); // Set the warning message
+    } else {
+      setDeviceIdWarning(''); // Clear the warning message
     }
   };
 
@@ -90,16 +120,24 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
         <Input
           placeholder="Enter or scan Serial Number..."
           value={serialNumber}
-          onChange={(e) => setSerialNumberState(e.target.value)}
+          onChange={(e) => {
+            setSerialNumberState(e.target.value);
+            checkSerialNumber(e.target.value);
+          }}
         />
+        {serialNumberWarning && <Text color="orange">{serialNumberWarning}</Text>}
       </FormControl>
       <FormControl id="device-id" mb={4} width="50%">
         <FormLabel>Device ID</FormLabel>
         <Input
           placeholder="Enter or scan Device ID..."
           value={deviceId}
-          onChange={(e) => setDeviceIdState(e.target.value)}
+          onChange={(e) => {
+            setDeviceIdState(e.target.value);
+            checkDeviceId(e.target.value);
+          }}
         />
+        {deviceIdWarning && <Text color="orange">{deviceIdWarning}</Text>}
       </FormControl>
       <Button
         colorScheme="blue"
@@ -107,7 +145,7 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
         py={2}
         h="48px"
         onClick={handleSubmit}
-        isDisabled={!serialNumber && !deviceId}
+        isDisabled={!serialNumber || !deviceId || deviceIdWarning || serialNumberWarning}
         mt={4}
       >
         Link Device
