@@ -50,8 +50,8 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
 
   // Checks the device ID length and format
   const checkDeviceId = (value) => {
-    if (!/^[A-Z0-9]{7}$/i.test(value) && value !== "") {
-      setDeviceIdWarning('Device ID must be 7 characters (numbers or letters)'); // Set the warning message
+    if (!/^[A-Z0-9]{6,7}$/i.test(value) && value !== "") {
+      setDeviceIdWarning('Device ID must be 6 or 7 characters (numbers or letters)'); // Set the warning message
     } else {
       setDeviceIdWarning(''); // Clear the warning message
     }
