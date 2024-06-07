@@ -161,6 +161,33 @@ const Tasks = () => {
     downloadCSV("all_tasks.csv", csvData);
   };
 
+  const exportRoomsToCSV = () => {
+    if (tasks.length === 0) {
+      console.log("No tasks to export");
+      return;
+    }
+  
+    const roomMap = new Map();
+    tasks.forEach(task => {
+      const room = task.name; // Using task.name as the room identifier
+      const serialNumber = task.deviceInfo?.at_serialNumber;
+      if (room && serialNumber) {
+        if (!roomMap.has(room)) {
+          roomMap.set(room, []);
+        }
+        roomMap.get(room).push(serialNumber);
+      }
+    });
+  
+    const csvHeader = "Room,Serial Numbers\n";
+    const csvContent = Array.from(roomMap).map(([room, serialNumbers]) => {
+      return `${room},"${serialNumbers.join(", ")}"`;
+    }).join("\n");
+    const csvData = csvHeader + csvContent;
+  
+    downloadCSV("rooms_serialnumbers.csv", csvData);
+  };
+
   const formatTaskDisplay = (task) => {
     if (!task) {
       return "Task data is not available";
@@ -235,6 +262,9 @@ const Tasks = () => {
             <div style={{ display: "flex", gap: "6px" }}>
               <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
                 Get Print File
+              </Button>
+              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={exportRoomsToCSV}>
+                Export Rooms
               </Button>
               <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={exportAllToCSV}>
                 Export All
