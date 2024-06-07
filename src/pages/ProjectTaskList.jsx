@@ -4,15 +4,34 @@ import { FaLink, FaCheckCircle } from 'react-icons/fa';
 import ProjectTaskFilter from "../components/ProjectTaskFilter.jsx";
 import TaskDeviceLinker from './TaskDeviceLinker';
 
-const ProjectTaskList = ({ tasks, taskStatuses, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
+const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
   const [visibleLinkerTaskId, setVisibleLinkerTaskId] = useState(null);
-  const [selectedStatuses, setSelectedStatuses] = useState(new Set()); // Add this line
+  const [selectedStatuses, setSelectedStatuses] = useState([]); 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  const taskStatuses = tasks.reduce((statuses, task) => { // Create a list of unique status objects
+    if (!statuses.some(s => s.id === task.status_id)) {
+      statuses.push({id: task.status_id, name: task.status_name});
+    }
+    return statuses;
+  }, []);
+
+  const taskCategories = tasks.reduce((categories, task) => { // Create a list of unique category objects
+    if (!categories.some(s => s.id === task.team_id)) {
+      categories.push({id: task.team_id, name: task.team_name});
+    }
+    return categories;
+  }, []);
 
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const linkedColor = useColorModeValue('green.500', 'green.200');
 
   const handleStatusChange = (selectedStatuses) => {
     setSelectedStatuses(selectedStatuses ? selectedStatuses : []);
+  };
+
+  const handleCategoryChange = (selectedCategories) => {
+    setSelectedCategories(selectedCategories ? selectedCategories : []);
   };
 
   const toggleLinkerVisibility = (task) => {
@@ -30,17 +49,21 @@ const ProjectTaskList = ({ tasks, taskStatuses, selectedTasks, handleCheckboxCha
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
-  // Filter tasks based on selected statuses
-  const filteredTasks = selectedStatuses.length > 0 
-  ? tasks.filter(task => selectedStatuses.includes(task.status_id))
-  : tasks;
+  // Filter tasks based on selected statuses and categories
+  const filteredTasks = tasks.filter(task => 
+    (selectedStatuses.length === 0 || selectedStatuses.includes(task.status_id)) &&
+    (selectedCategories.length === 0 || selectedCategories.includes(task.team_id))
+  );
 
   // Sort tasks by sequence_number in ascending order
   const sortedTasks = filteredTasks.sort((a, b) => a.sequence_number - b.sequence_number);
 
   return (
     <VStack align="stretch" spacing={4}>
-      <ProjectTaskFilter taskStatuses={taskStatuses} onSelectedStatusesChange={handleStatusChange}></ProjectTaskFilter> 
+      <Flex justifyContent="space-between" alignItems="flex-end" width="100%">
+        <ProjectTaskFilter taskStatuses={taskStatuses} taskCategories={taskCategories} onSelectedStatusesChange={handleStatusChange} onSelectedCategoriesChange={handleCategoryChange}></ProjectTaskFilter> 
+        <Text fontSize="sm" color="gray.500">({sortedTasks.length})</Text>
+      </Flex>
       {sortedTasks.map((task) => (
         <Card key={task.id} mb={2} width="100%" borderLeftWidth="5px" borderLeftColor={task.deviceInfo ? linkedColor : borderColor} style={{ padding: '10px', margin: '5px' }}>
           <CardBody p={4}>
