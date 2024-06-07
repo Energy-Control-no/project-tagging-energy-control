@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select } from "@chakra-ui/react";
+import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select, Checkbox } from "@chakra-ui/react";
 import { FaPrint, FaHashtag, FaSlash } from "react-icons/fa";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
@@ -8,8 +8,7 @@ const Tasks = () => {
   const { projectId } = useParams();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
-  // const [taskStatuses, setTaskStatuses] = useState([]);
-  const [selectedTasks, setSelectedTasks] = useState(new Set());
+  const [selectedTasks, setSelectedTasks] = useState(new Set([]));
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetchedId, setLastFetchedId] = useState(null);
@@ -73,16 +72,6 @@ const Tasks = () => {
     }
   }, [projectId]); 
 
-  const handleCheckboxChange = (taskId) => {
-    const newSelectedTasks = new Set(selectedTasks);
-    if (selectedTasks.has(taskId)) {
-      newSelectedTasks.delete(taskId);
-    } else {
-      newSelectedTasks.add(taskId);
-    }
-    setSelectedTasks(newSelectedTasks);
-  };
-
   const handleFieldChange = (index, event) => {
     const newSelectedFields = [...selectedFields];
     newSelectedFields[index] = event.target.value;
@@ -116,9 +105,9 @@ const Tasks = () => {
   };
 
   const exportToCSV = () => {
-    const selectedTaskData = tasks.filter((task) => selectedTasks.has(task.id));
+    const tasksToExport = tasks.filter((task) => selectedTasks.has(task.id));
     const csvHeader = "component_label\n";
-    const csvContent = selectedTaskData.map((task) => (isHashSelected ? "#" : "") + selectedFields.map((field) => task[field]).join("-")).join("\n");
+    const csvContent = tasksToExport.map((task) => (isHashSelected ? "#" : "") + selectedFields.map((field) => task[field]).join("-")).join("\n");
     const csvData = csvHeader + csvContent;
 
     downloadCSV("tasks.csv", csvData);
@@ -138,13 +127,9 @@ const Tasks = () => {
   }
 
   const exportAllToCSV = () => {
-    if (tasks.length === 0) {
-      console.log("No tasks to export");
-      return;
-    }
-
+    const tasksToExport = tasks.filter((task) => selectedTasks.has(task.id));
     const deviceInfoKeys = ["at_deviceName", "at_serialNumber", "created_at", "fw_id", "fw_task_id"];
-    const flattenedTasks = tasks.map(task => {
+    const flattenedTasks = tasksToExport.map(task => {
       const flattenedDevice = flattenDeviceInfoObject(task.deviceInfo, deviceInfoKeys, "deviceInfo");
       return { ...task, ...flattenedDevice };
     });
@@ -162,13 +147,9 @@ const Tasks = () => {
   };
 
   const exportRoomsToCSV = () => {
-    if (tasks.length === 0) {
-      console.log("No tasks to export");
-      return;
-    }
-  
+    const tasksToExport = tasks.filter((task) => selectedTasks.has(task.id));
     const roomMap = new Map();
-    tasks.forEach(task => {
+    tasksToExport.forEach(task => {
       const room = task.name; // Using task.name as the room identifier
       const serialNumber = task.deviceInfo?.at_serialNumber;
       if (room && serialNumber) {
@@ -260,30 +241,23 @@ const Tasks = () => {
           </Box>
           <Box display="flex" justifyContent="space-between" gap="6px">
             <div style={{ display: "flex", gap: "6px" }}>
-              <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} onClick={exportToCSV}>
-                Get Print File
-              </Button>
-              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={exportRoomsToCSV}>
+              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} isDisabled={selectedTasks.size === 0} onClick={exportRoomsToCSV}>
                 Export Rooms
               </Button>
-              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={exportAllToCSV}>
-                Export All
+              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} isDisabled={selectedTasks.size === 0} onClick={exportAllToCSV}>
+                Export Tasks
               </Button>
             </div>
-
             <div style={{ display: "flex", gap: "6px" }}>
-              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set(tasks.map((task) => task.id)))}>
-                Select All
-              </Button>
-              <Button size="xs" colorScheme="gray" variant="outline" px={3} py={4} onClick={() => setSelectedTasks(new Set())}>
-                Clear Selection
+              <Button size="xs" leftIcon={<FaPrint />} colorScheme="blue" px={3} py={4} isDisabled={selectedTasks.size === 0} onClick={exportToCSV}>
+                Get Print File
               </Button>
             </div>
           </Box>
         </Box>
       )}
 
-      <ProjectTaskList tasks={tasks} setTasks={setTasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
+      <ProjectTaskList tasks={tasks} setTasks={setTasks} selectedTasks={selectedTasks} setSelectedTasks={setSelectedTasks} formatTaskDisplay={formatTaskDisplay} />
     </Box>
   );
 };
