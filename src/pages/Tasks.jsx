@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select, Checkbox } from "@chakra-ui/react";
-import { FaPrint, FaHashtag, FaSlash } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select } from "@chakra-ui/react";
+import { FaPrint, FaHashtag, FaSlash, FaAngleDown, FaAngleUp } from "react-icons/fa";
 import ProjectTaskList from "./ProjectTaskList.jsx";
 
 const Tasks = () => {
@@ -196,20 +196,16 @@ const Tasks = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Heading as="h2" size="md" mb={4}>
-          Project Tasks: {projectName || projectId}
-        </Heading>
-        <Button variant="link" onClick={togglePrintingSection}>
-          {showPrintingSection ? "Hide Printing" : "Print Labels"}
-        </Button>
-      </Box>
+      <Heading as="h2" size="md" mb={4}>
+        Project Tasks: {projectName || projectId}
+      </Heading>
+      <Flex alignItems="center" cursor="pointer" onClick={togglePrintingSection}>
+        <Text size="md">Task Options</Text>
+        {showPrintingSection ? <FaAngleUp color="grey"/> : <FaAngleDown color="grey"/>}
+      </Flex>
       {showPrintingSection && (
         <Box mb={6} p={4} border="1px solid #e2e8f0">
           <Box>
-            <Text fontSize="xs" fontFamily="mono">
-              Label: {formatTaskDisplay(tasks[0])}
-            </Text>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
                 <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
