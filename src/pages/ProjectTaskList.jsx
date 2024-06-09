@@ -105,7 +105,7 @@ const ProjectTaskList = ({ tasks, setTasks, selectedTasks, setSelectedTasks, for
       </Flex>
       <Flex justifyContent="space-between">
         <Checkbox isChecked={selectAll} isIndeterminate={!selectAll && selectedTasks.size > 0} onChange={handleSelectAllChange}>
-          <Text fontSize="md">Selected Tasks</Text>
+          <Text fontSize="sm">Selected Tasks</Text>
         </Checkbox>
         <Text fontSize="sm" color="gray.500">({sortedTasks.length})</Text>
       </Flex>
