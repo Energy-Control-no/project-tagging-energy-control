@@ -1,74 +1,70 @@
-import airthingsAuth from '../_shared/airthings_auth.ts';
+import airthingsAuth from "../_shared/airthings_auth.ts";
 
-async function fetchAirthingsLocations(token: string, account_id: string) {
-    const locationsUrl = `https://ext-api.airthings.com/v1/locations?accountId=${account_id}`;
-    const options = {
+const getAirthingsLocations = async (accessToken: string, accountId: string) => {
+  try {
+    const encodedAccountId = encodeURIComponent(accountId);
+    const url = `https://ext-api.airthings.com/v1/locations?accountId=${encodedAccountId}`;
+    const response = await fetch(url, {
         method: 'GET',
         headers: {
-            accept: 'application/json',
-            authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`
         }
-    };
-
-    try {
-        const response = await fetch(locationsUrl, options);
-        return await response.json();
-    } catch (error) {
-        throw new Error(`Failed to fetch locations for account ${account_id}, ${error}`);
-    }
-}
-
-Deno.serve(async (req) => {
-    const accountId = "499bdcd1-43a8-4d05-8ab4-40750cbbfb79";
-
-    const headers = new Headers({
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*", // This allows all domains. For production, specify your domain instead.
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       });
-      try {
-        if (req.method === "OPTIONS") {
-          // Handle CORS preflight request
-          return new Response(null, { status: 204, headers });
-        }
-    
-        if (req.method !== "GET") {
-          return new Response(JSON.stringify({ error: "Method not allowed" }), {
-            status: 405,
-            headers,
-          });
-        }
+    return response.json();
+} catch (error) {
+    throw new Error(`Failed to fetch locations for account ${accountId}, ${error}`);
+}}
 
-        const token = await airthingsAuth();
-        if (!token) {
-            return new Response(JSON.stringify({ error: "Failed to get auth token" }), {
-                status: 401,
-                headers,
-                });
-        }
-        console.log("token", token)
-        const response = await fetchAirthingsLocations(token, accountId);
-
-        return new Response(JSON.stringify(response), {
-            status: 200,
-            headers,
-        });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
-            headers,
-        });
+Deno.serve(async (req: Request) => {
+  const headers = new Headers({
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*", // This allows all domains. For production, specify your domain instead.
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  });
+  try {
+    if (req.method === "OPTIONS") {
+      // Handle CORS preflight request
+      return new Response(null, { status: 204, headers });
     }
+
+    if (req.method !== "GET") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers,
+      });
+    }
+
+    const url = new URL(req.url); // Extract query parameters
+    const client_id = url.searchParams.get('client_id');
+    const client_secret = url.searchParams.get('client_secret');
+    const account_id = url.searchParams.get('account_id');
+
+    if (!client_id || !client_secret || !account_id) {
+      return new Response(JSON.stringify({ error: 'Airthings client_id, client_secret and account_id are required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Authenticate with Airthings
+    const accessToken = await airthingsAuth({
+      clientId: client_id,
+      clientSecret: client_secret,
+      accountId: "", // TODO: remove from function
+    });
+
+    const locations = await getAirthingsLocations(accessToken, account_id);
+    console.log(`Airthings locations: ${locations}`);
+    return new Response(JSON.stringify(locations), {
+      status: 200,
+      headers,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers,
+    });
+  }
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request GET 'http://127.0.0.1:54321/functions/v1/get_airthings_locations' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json'
-
-*/

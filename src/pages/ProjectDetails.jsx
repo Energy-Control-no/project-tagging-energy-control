@@ -95,7 +95,7 @@ const ProjectDetails = () => {
   const fetchLocations = async () => {
     setLoadingLocations(true);
     try {
-      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?account_id=' + accountId);
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientId + '&client_secret=' + clientSecret + '&account_id=' + accountId);
       const data = await response.json();
       setLocationOptions(data.locations ? data.locations : []);
     } catch (error) {
