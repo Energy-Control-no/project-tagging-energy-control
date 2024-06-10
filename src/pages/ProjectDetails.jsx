@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Flex, Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack } from "@chakra-ui/react";
+import { Flex, Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack, Select } from "@chakra-ui/react";
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FIELDWIRE_CONSTANTS } from '../constants/Fieldwire.constants';
@@ -15,6 +15,10 @@ const ProjectDetails = () => {
   const [clientSecret, setClientSecret] = useState("");
   const [accountId, setAccountId] = useState("");
   const [locationId, setLocationId] = useState("");
+  const [accountOptions, setAccountOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   const [projectData, setProjectData] = useState({
     at_client_id: "",
@@ -48,10 +52,10 @@ const ProjectDetails = () => {
         if (data.length > 0) {
           setProjectData(data[0]);
           setProjectExists(true);
-          setClientId(data.at_client_id);
-          setClientSecret(data.at_client_secret);
-          setAccountId(data.at_accountId);
-          setLocationId(data.at_locationId);
+          setClientId(data[0].at_client_id);
+          setClientSecret(data[0].at_client_secret);
+          setAccountId(data[0].at_accountId);
+          setLocationId(data[0].at_locationId);
         } else {
           setError("No project has been established yet.");
         }
@@ -76,6 +80,30 @@ const ProjectDetails = () => {
     fetchProject();
   }, [projectId]);
 
+  const fetchAccounts = async () => {
+    setLoadingAccounts(true);
+    try {
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientId + '&client_secret=' + clientSecret);
+      const data = await response.json();
+      setAccountOptions(data.accounts ? data.accounts : []);
+    } catch (error) {
+      console.error('Failed to fetch accounts', error);
+    }
+    setLoadingAccounts(false);
+  };
+    
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?account_id=' + accountId);
+      const data = await response.json();
+      setLocationOptions(data.locations ? data.locations : []);
+    } catch (error) {
+      console.error('Failed to fetch locations', error);
+    }
+    setLoadingLocations(false);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProjectData((prevState) => ({
@@ -83,7 +111,7 @@ const ProjectDetails = () => {
       [name]: value,
     }));
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -164,7 +192,7 @@ const ProjectDetails = () => {
             <FormControl>
               <FormLabel htmlFor="apiClientId">API Client ID</FormLabel>
               <Input id="at_client_id" name="at_client_id" value={projectData.at_client_id} onChange={handleInputChange} placeholder="Enter API Client ID" />{" "}
-              <Text fontSize="sm" mt="2">
+              <Text fontSize="sm" mt="2" color="gray.500">
                 Go to the{" "}
                 <a href="https://dashboard.airthings.com/integrations/api-integration" target="_blank" rel="noopener noreferrer">
                   Airthings client account
@@ -176,31 +204,46 @@ const ProjectDetails = () => {
             <FormControl mt="4">
               <FormLabel htmlFor="apiClientSecret">API Client Secret</FormLabel>
               <Input id="at_client_secret" name="at_client_secret" value={projectData.at_client_secret} onChange={handleInputChange} placeholder="Enter API Client Secret" />{" "}
-              <Text fontSize="sm" mt="2">
+              <Text fontSize="sm" mt="2" color="gray.500">
                 After creating the API client, ensure it is active and copy the secret here. The client will also see this in their Airthings dashboard.
               </Text>
             </FormControl>
-            <FormControl isRequired>
+
+            <FormControl mt="4" isRequired>
               <FormLabel htmlFor="airthingsAccountId">Airthings Account ID</FormLabel>
-              <Input id="at_accountId" name="at_accountId" value={projectData.at_accountId} onChange={handleInputChange} placeholder="Enter Airthings Account ID" />{" "}
-              <Text fontSize="sm" mt="2">
+              <Flex alignItems="center">
+                <Select id="at_accountId" name="at_accountId" value={projectData.at_accountId} onChange={handleInputChange} placeholder={loadingAccounts ? "Not Set" : "Select Account"} width="auto" flexGrow={1}>
+                  {accountOptions.map((option) => (
+                    <option key={option.id} value={option.id}>{option.name}</option>
+                  ))}
+                </Select>
+                <Button ml={2} onClick={fetchAccounts} size="sm" isLoading={loadingAccounts} loadingText="Loading...">Fetch</Button>
+              </Flex>
+              {/* <Text fontSize="sm" mt="2" color="gray.500">
                 Find the Account ID on the{" "}
                 <Link href="https://dashboard.airthings.com/integrations" isExternal color="teal.500">
                   Airthings Integrations page
                 </Link>
                 . Make sure you are logged into the correct account for this user!
-              </Text>
+              </Text> */}
             </FormControl>
-            <FormControl isRequired>
-              <FormLabel htmlFor="airthingsLocationId">Airthings Location ID (Building ID)</FormLabel>
-              <Input id="at_locationId" name="at_locationId" value={projectData.at_locationId} onChange={handleInputChange} placeholder="Enter Airthings Location ID" />{" "}
-              <Text fontSize="sm" mt="2">
+            <FormControl mt="4" isRequired>
+            <FormLabel htmlFor="airthingsLocationId">Airthings Location ID (Building ID)</FormLabel>
+              <Flex alignItems="center">
+                <Select id="at_locationId" name="at_locationId" value={projectData.at_locationId} onChange={handleInputChange} placeholder={loadingLocations ? "Not Set" : "Select Location"} width="auto" flexGrow={1}>
+                  {locationOptions.map((option) => (
+                    <option key={option.id} value={option.id}>{option.name}</option>
+                  ))}
+                </Select>
+                <Button ml={2} onClick={fetchLocations} size="sm" isLoading={loadingLocations} loadingText="Loading...">Fetch</Button>
+              </Flex>
+              {/* <Text fontSize="sm" mt="2" color="gray.500">
                 To find the Location ID, go to the{" "}
                 <Link href="https://dashboard.airthings.com/buildings" isExternal color="teal.500">
                   Airthings dashboard
                 </Link>{" "}
                 for the specific building. The Location ID is the UUID in the URL, which looks like this: "acd0b858-32e6-4dd5-903b-66c478d6bccd".
-              </Text>
+              </Text> */}
             </FormControl>
           </Box>
         </VStack>
