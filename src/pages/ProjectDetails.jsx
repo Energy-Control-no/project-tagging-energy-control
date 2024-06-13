@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Flex, Link, Box, Button, Heading, Input, FormLabel, FormControl, Alert, Text, VStack, Select } from "@chakra-ui/react";
 import { ArrowForwardIcon } from '@chakra-ui/icons';
+import { FaSyncAlt } from "react-icons/fa";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FIELDWIRE_CONSTANTS } from '../constants/Fieldwire.constants';
 
@@ -55,8 +56,12 @@ const ProjectDetails = () => {
           setProjectExists(true);
           setClientId(data[0].at_client_id);
           setClientSecret(data[0].at_client_secret);
-          setAccountId(data[0].at_accountId);
-          setLocationId(data[0].at_locationId);
+          if (data[0].at_client_id && data[0].at_client_secret) {
+            const accountsData = await fetchAccounts(data[0].at_client_id, data[0].at_client_secret);
+            if (accountsData?.accounts.length > 0) {
+              await fetchLocations(data[0].at_client_id, data[0].at_client_secret, accountsData.accounts[0].id);
+            }
+          }
         } else {
           setError("No project has been established yet.");
         }
@@ -81,13 +86,17 @@ const ProjectDetails = () => {
     fetchProject();
   }, [projectId]);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = async (clientIdVar, clientSecretVar) => {
     setLoadingAccounts(true);
+    const clientIdQuery = clientIdVar || clientId;
+    const clientSecretQuery = clientSecretVar || clientSecret;
     try {
-      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientId + '&client_secret=' + clientSecret);
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientIdQuery + '&client_secret=' + clientSecretQuery);
       const data = await response.json();
       if (response.ok) {
         setAccountOptions(data.accounts ? data.accounts : []);
+        setLoadingAccounts(false);
+        return data;
       } else {
         throw new Error(data.error || "Failed to fetch accounts with provided credentials.");
       }
@@ -98,13 +107,18 @@ const ProjectDetails = () => {
     setLoadingAccounts(false);
   };
     
-  const fetchLocations = async () => {
+  const fetchLocations = async (clientIdVar, clientSecretVar, accountIdVar) => {
     setLoadingLocations(true);
+    const clientIdQuery = clientIdVar || clientId;
+    const clientSecretQuery = clientSecretVar || clientSecret;
+    const accountIdQuery = accountIdVar || accountId;
     try {
-      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientId + '&client_secret=' + clientSecret + '&account_id=' + accountId);
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientIdQuery + '&client_secret=' + clientSecretQuery + '&account_id=' + accountIdQuery);
       const data = await response.json();
       if (response.ok) {
         setLocationOptions(data.locations ? data.locations : []);
+        setLoadingLocations(false);
+        return data;
       } else {
         throw new Error(data.error || "Failed to fetch locations with provided credentials.");
       }
@@ -229,7 +243,9 @@ const ProjectDetails = () => {
                     <option key={option.id} value={option.id}>{option.name}</option>
                   ))}
                 </Select>
-                <Button ml={2} onClick={fetchAccounts} size="sm" isLoading={loadingAccounts} loadingText="Loading...">Fetch</Button>
+                <Button ml={2} onClick={fetchAccounts} size="sm" isLoading={loadingAccounts} loadingText="Loading...">
+                  <FaSyncAlt />
+                </Button>
               </Flex>
               {/* <Text fontSize="sm" mt="2" color="gray.500">
                 Find the Account ID on the{" "}
@@ -247,7 +263,9 @@ const ProjectDetails = () => {
                     <option key={option.id} value={option.id}>{option.name}</option>
                   ))}
                 </Select>
-                <Button ml={2} onClick={fetchLocations} size="sm" isLoading={loadingLocations} loadingText="Loading...">Fetch</Button>
+                <Button ml={2} onClick={fetchLocations} size="sm" isLoading={loadingLocations} loadingText="Loading...">
+                  <FaSyncAlt />
+                </Button>
               </Flex>
               {/* <Text fontSize="sm" mt="2" color="gray.500">
                 To find the Location ID, go to the{" "}
