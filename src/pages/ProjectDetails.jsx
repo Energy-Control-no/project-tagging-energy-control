@@ -34,6 +34,7 @@ const ProjectDetails = () => {
   const [projectExists, setProjectExists] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [airthingsError, setAirthingsError] = useState("");
 
   // Example UUID for reference
   const exampleUUID = "123e4567-e89b-12d3-a456-426614174000";
@@ -85,8 +86,13 @@ const ProjectDetails = () => {
     try {
       const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientId + '&client_secret=' + clientSecret);
       const data = await response.json();
-      setAccountOptions(data.accounts ? data.accounts : []);
+      if (response.ok) {
+        setAccountOptions(data.accounts ? data.accounts : []);
+      } else {
+        throw new Error(data.error || "Failed to fetch accounts with provided credentials.");
+      }
     } catch (error) {
+      setAirthingsError(error.message);
       console.error('Failed to fetch accounts', error);
     }
     setLoadingAccounts(false);
@@ -97,8 +103,13 @@ const ProjectDetails = () => {
     try {
       const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientId + '&client_secret=' + clientSecret + '&account_id=' + accountId);
       const data = await response.json();
-      setLocationOptions(data.locations ? data.locations : []);
+      if (response.ok) {
+        setLocationOptions(data.locations ? data.locations : []);
+      } else {
+        throw new Error(data.error || "Failed to fetch locations with provided credentials.");
+      }
     } catch (error) {
+      setAirthingsError(error.message);
       console.error('Failed to fetch locations', error);
     }
     setLoadingLocations(false);
@@ -188,6 +199,7 @@ const ProjectDetails = () => {
             <Heading as="h3" size="lg" mb={2}>
               Airthings Account Information
             </Heading>
+            {airthingsError && <Alert status="error">{airthingsError}</Alert>}
             {projectExists ? null : <Text color="red.500">Please fill in all fields to link Airthings.</Text>}
             <FormControl>
               <FormLabel htmlFor="apiClientId">API Client ID</FormLabel>
