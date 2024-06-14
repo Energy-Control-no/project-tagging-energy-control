@@ -160,9 +160,9 @@ const Tasks = () => {
       }
     });
   
-    const csvHeader = "Room,Serial Numbers\n";
+    const csvHeader = "Room;Serial Numbers\n";
     const csvContent = Array.from(roomMap).map(([room, serialNumbers]) => {
-      return `${room},"${serialNumbers.join(", ")}"`;
+      return `${room};${serialNumbers.join(",")}`;
     }).join("\n");
     const csvData = csvHeader + csvContent;
   
