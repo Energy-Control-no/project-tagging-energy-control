@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input, Button, Flex, Text, Box, FormControl, FormLabel, Alert, AlertIcon } from "@chakra-ui/react";
 
-const TaskDeviceLinker = ({ task, formattedTaskName }) => {
+const TaskDeviceLinker = ({ task, formattedTaskName, onLinkSuccess }) => {
   const [inputValue, setInputValue] = useState('');
   const [serialNumber, setSerialNumberState] = useState('');
   const [deviceId, setDeviceIdState] = useState('');
@@ -98,6 +98,9 @@ const TaskDeviceLinker = ({ task, formattedTaskName }) => {
       const response = await postAirthingsDevice(payload);
       setMessage(response.message); // Set the success message
       setError(''); // Clear any previous errors
+      if (onLinkSuccess) {
+        onLinkSuccess(payload);
+      }
     } catch (error) {
       console.error("Failed to link device:", error);
       setError(error.message);
