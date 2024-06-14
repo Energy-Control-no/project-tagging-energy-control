@@ -130,6 +130,23 @@ const ProjectDetails = () => {
       ...prevState,
       [name]: value,
     }));
+
+    switch (name) {
+      case 'at_client_id':
+        setClientId(value);
+        break;
+      case 'at_client_secret':
+        setClientSecret(value);
+        break;
+      case 'at_accountId':
+        setAccountId(value);
+        break;
+      case 'at_locationId':
+        setLocationId(value);
+        break;
+      default:
+        break;
+    }
   };
   
   const handleSubmit = async (e) => {
@@ -238,7 +255,7 @@ const ProjectDetails = () => {
                     <option key={option.id} value={option.id}>{option.name}</option>
                   ))}
                 </Select>
-                <Button ml={2} onClick={fetchAccounts} size="sm" isLoading={loadingAccounts} loadingText="Loading...">
+                <Button ml={2} onClick={() => fetchAccounts()} size="sm" isLoading={loadingAccounts} loadingText="Loading...">
                   <FaSyncAlt />
                 </Button>
               </Flex>
@@ -251,7 +268,7 @@ const ProjectDetails = () => {
                     <option key={option.id} value={option.id}>{option.name}</option>
                   ))}
                 </Select>
-                <Button ml={2} onClick={fetchLocations} size="sm" isLoading={loadingLocations} loadingText="Loading...">
+                <Button ml={2} onClick={() => fetchLocations()} size="sm" isLoading={loadingLocations} loadingText="Loading...">
                   <FaSyncAlt />
                 </Button>
               </Flex>
