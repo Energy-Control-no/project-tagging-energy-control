@@ -253,7 +253,7 @@ const Tasks = () => {
         </Box>
       )}
 
-      <ProjectTaskList tasks={tasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
+      <ProjectTaskList tasks={tasks} setTasks={setTasks} selectedTasks={selectedTasks} handleCheckboxChange={handleCheckboxChange} formatTaskDisplay={formatTaskDisplay} />
     </Box>
   );
 };

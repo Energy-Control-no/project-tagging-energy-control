@@ -4,7 +4,7 @@ import { FaLink, FaCheckCircle } from 'react-icons/fa';
 import ProjectTaskFilter from "../components/ProjectTaskFilter.jsx";
 import TaskDeviceLinker from './TaskDeviceLinker';
 
-const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
+const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
   const [visibleLinkerTaskId, setVisibleLinkerTaskId] = useState(null);
   const [selectedStatuses, setSelectedStatuses] = useState([]); 
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -47,6 +47,16 @@ const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTas
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  const handleLinkSuccess = (taskId, deviceInfo) => {
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, deviceInfo }; // Add deviceInfo to the task
+      }
+      return task;
+    });
+    setTasks(updatedTasks); // Update the tasks state
   };
 
   // Filter tasks based on selected statuses and categories
@@ -99,6 +109,7 @@ const ProjectTaskList = ({ tasks, selectedTasks, handleCheckboxChange, formatTas
               <TaskDeviceLinker
                 task={task}
                 formattedTaskName={formatTaskDisplay(task)}
+                onLinkSuccess={(data) => handleLinkSuccess(data.fw_task_id, data.deviceInfo)}
               />
             )}
           </CardBody>
