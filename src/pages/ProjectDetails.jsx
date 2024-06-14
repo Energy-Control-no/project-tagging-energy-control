@@ -86,12 +86,10 @@ const ProjectDetails = () => {
     fetchProject();
   }, [projectId]);
 
-  const fetchAccounts = async (clientIdVar, clientSecretVar) => {
+  const fetchAccounts = async (clientIdParam = clientId, clientSecretParam = clientSecret) => {
     setLoadingAccounts(true);
-    const clientIdQuery = clientIdVar || clientId;
-    const clientSecretQuery = clientSecretVar || clientSecret;
     try {
-      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientIdQuery + '&client_secret=' + clientSecretQuery);
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_accounts?client_id=' + clientIdParam + '&client_secret=' + clientSecretParam);
       const data = await response.json();
       if (response.ok) {
         setAccountOptions(data.accounts ? data.accounts : []);
@@ -107,13 +105,10 @@ const ProjectDetails = () => {
     setLoadingAccounts(false);
   };
     
-  const fetchLocations = async (clientIdVar, clientSecretVar, accountIdVar) => {
+  const fetchLocations = async (clientIdParam = clientId, clientSecretParam = clientSecret, accountIdParam = accountId) => {
     setLoadingLocations(true);
-    const clientIdQuery = clientIdVar || clientId;
-    const clientSecretQuery = clientSecretVar || clientSecret;
-    const accountIdQuery = accountIdVar || accountId;
     try {
-      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientIdQuery + '&client_secret=' + clientSecretQuery + '&account_id=' + accountIdQuery);
+      const response = await fetch('https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_airthings_locations?client_id=' + clientIdParam + '&client_secret=' + clientSecretParam + '&account_id=' + accountIdParam);
       const data = await response.json();
       if (response.ok) {
         setLocationOptions(data.locations ? data.locations : []);
@@ -247,13 +242,6 @@ const ProjectDetails = () => {
                   <FaSyncAlt />
                 </Button>
               </Flex>
-              {/* <Text fontSize="sm" mt="2" color="gray.500">
-                Find the Account ID on the{" "}
-                <Link href="https://dashboard.airthings.com/integrations" isExternal color="teal.500">
-                  Airthings Integrations page
-                </Link>
-                . Make sure you are logged into the correct account for this user!
-              </Text> */}
             </FormControl>
             <FormControl mt="4" isRequired>
             <FormLabel htmlFor="airthingsLocationId">Airthings Location ID (Building ID)</FormLabel>
@@ -267,13 +255,6 @@ const ProjectDetails = () => {
                   <FaSyncAlt />
                 </Button>
               </Flex>
-              {/* <Text fontSize="sm" mt="2" color="gray.500">
-                To find the Location ID, go to the{" "}
-                <Link href="https://dashboard.airthings.com/buildings" isExternal color="teal.500">
-                  Airthings dashboard
-                </Link>{" "}
-                for the specific building. The Location ID is the UUID in the URL, which looks like this: "acd0b858-32e6-4dd5-903b-66c478d6bccd".
-              </Text> */}
             </FormControl>
           </Box>
         </VStack>
