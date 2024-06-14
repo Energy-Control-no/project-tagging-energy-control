@@ -1,18 +1,16 @@
 import airthingsAuth from "../_shared/airthings_auth.ts";
 
-const getAirthingsLocations = async (accessToken: string, accountId: string) => {
+const getAirthingsAccounts = async (accessToken: string) => {
   try {
-    const encodedAccountId = encodeURIComponent(accountId);
-    const url = `https://ext-api.airthings.com/v1/locations?accountId=${encodedAccountId}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
+    const response = await fetch(`https://ext-api.airthings.com/v1/accounts`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
     return response.json();
 } catch (error) {
-    throw new Error(`Failed to fetch locations for account ${accountId}, ${error}`);
+    throw new Error(`Failed to fetch accounts, ${error}`);
 }}
 
 Deno.serve(async (req: Request) => {
@@ -38,10 +36,9 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url); // Extract query parameters
     const client_id = url.searchParams.get('client_id');
     const client_secret = url.searchParams.get('client_secret');
-    const account_id = url.searchParams.get('account_id');
 
-    if (!client_id || !client_secret || !account_id) {
-      return new Response(JSON.stringify({ error: 'Airthings client_id, client_secret and account_id are required' }), {
+    if (!client_id || !client_secret) {
+      return new Response(JSON.stringify({ error: 'Airthings client_id and client_secret are required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -54,9 +51,9 @@ Deno.serve(async (req: Request) => {
       accountId: "", // TODO: remove from function
     });
 
-    const locations = await getAirthingsLocations(accessToken, account_id);
-    console.log(`Airthings locations: ${locations}`);
-    return new Response(JSON.stringify(locations), {
+    const accounts = await getAirthingsAccounts(accessToken);
+    console.log(`Airthings accounts: ${accounts}`);
+    return new Response(JSON.stringify(accounts), {
       status: 200,
       headers,
     });
