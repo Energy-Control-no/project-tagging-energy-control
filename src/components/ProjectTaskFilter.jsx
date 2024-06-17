@@ -30,7 +30,7 @@ const ProjectTaskFilter = ({ taskStatuses, taskCategories, onSelectedStatusesCha
 
   return (
     <Flex flexDirection="column" width="100vw">
-      <Flex flex="1" alignItems="center" flexDirection="row" width="100%" overflowX="scroll">
+      <Flex flex="1" alignItems="center" flexDirection="row" width="100%" overflowX="scroll"  sx={{ '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Text size="md">Status:</Text>
         <Box whiteSpace="nowrap" display="flex">
           {taskStatuses.map((taskStatus, index) => (
@@ -41,7 +41,7 @@ const ProjectTaskFilter = ({ taskStatuses, taskCategories, onSelectedStatusesCha
           ))}
         </Box>
       </Flex>
-      <Flex flex="1" alignItems="center" flexDirection="row" width="100%" overflowX="scroll">
+      <Flex flex="1" alignItems="center" flexDirection="row" width="100%" overflowX="scroll" sx={{ '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Text size="md">Category:</Text>
         <Box whiteSpace="nowrap" display="flex">
           {taskCategories.map((taskCategory, index) => (

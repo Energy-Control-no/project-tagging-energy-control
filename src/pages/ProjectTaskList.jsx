@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VStack, Card, CardBody, Flex, Box, Checkbox, Button, Link, Badge, useColorModeValue, Text, Tooltip } from '@chakra-ui/react';
 import { FaLink, FaCheckCircle } from 'react-icons/fa';
 import ProjectTaskFilter from "../components/ProjectTaskFilter.jsx";
 import TaskDeviceLinker from './TaskDeviceLinker';
 
-const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange, formatTaskDisplay, setSelectedTaskForModal }) => {
+const ProjectTaskList = ({ tasks, setTasks, selectedTasks, setSelectedTasks, formatTaskDisplay }) => {
   const [visibleLinkerTaskId, setVisibleLinkerTaskId] = useState(null);
   const [selectedStatuses, setSelectedStatuses] = useState([]); 
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const taskStatuses = tasks.reduce((statuses, task) => { // Create a list of unique status objects
     if (!statuses.some(s => s.id === task.status_id)) {
@@ -26,6 +27,43 @@ const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange,
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const linkedColor = useColorModeValue('green.500', 'green.200');
 
+  // Filter tasks based on selected statuses and categories
+  const filteredTasks = tasks.filter(task => 
+    (selectedStatuses.length === 0 || selectedStatuses.includes(task.status_id)) &&
+    (selectedCategories.length === 0 || selectedCategories.includes(task.team_id))
+  );
+
+  useEffect(() => {
+    const currentFilteredTaskIds = new Set(filteredTasks.map(task => task.id));
+    const updatedSelectedTasks = new Set([...selectedTasks].filter(taskId => currentFilteredTaskIds.has(taskId)));
+    
+    if (updatedSelectedTasks.size !== selectedTasks.size) {
+      setSelectedTasks(updatedSelectedTasks);
+    }
+  }, [filteredTasks]); // Dependency on filteredTasks ensures this runs whenever the filtered list changes
+
+  const handleSelectAllChange = () => {
+    if (filteredTasks.length === selectedTasks.size) { // all tasks are selected
+      setSelectedTasks(new Set([])); // Deselect all tasks
+      setSelectAll(false);
+    } else {
+      const newSelectedTasks = new Set(filteredTasks.map(task => task.id)); // Select all tasks that are currently visible
+      setSelectedTasks(newSelectedTasks);
+      setSelectAll(true);
+    }
+  };
+
+  const handleCheckboxChange = (taskId) => {
+    const newSelectedTasks = new Set(selectedTasks);
+    if (selectedTasks.has(taskId)) {
+      newSelectedTasks.delete(taskId);
+    } else {
+      newSelectedTasks.add(taskId);
+    }
+    setSelectedTasks(newSelectedTasks);
+    filteredTasks.length === newSelectedTasks.size ? setSelectAll(true) : setSelectAll(false);
+  };
+
   const handleStatusChange = (selectedStatuses) => {
     setSelectedStatuses(selectedStatuses ? selectedStatuses : []);
   };
@@ -37,10 +75,8 @@ const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange,
   const toggleLinkerVisibility = (task) => {
     if (visibleLinkerTaskId === task.id) {
       setVisibleLinkerTaskId(null);
-      setSelectedTaskForModal(null);
     } else {
       setVisibleLinkerTaskId(task.id);
-      setSelectedTaskForModal(task);
     }
   };
 
@@ -59,12 +95,6 @@ const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange,
     setTasks(updatedTasks); // Update the tasks state
   };
 
-  // Filter tasks based on selected statuses and categories
-  const filteredTasks = tasks.filter(task => 
-    (selectedStatuses.length === 0 || selectedStatuses.includes(task.status_id)) &&
-    (selectedCategories.length === 0 || selectedCategories.includes(task.team_id))
-  );
-
   // Sort tasks by sequence_number in ascending order
   const sortedTasks = filteredTasks.sort((a, b) => a.sequence_number - b.sequence_number);
 
@@ -72,6 +102,11 @@ const ProjectTaskList = ({ tasks, setTasks, selectedTasks, handleCheckboxChange,
     <VStack align="stretch" spacing={4}>
       <Flex justifyContent="space-between" alignItems="flex-end" width="100%">
         <ProjectTaskFilter taskStatuses={taskStatuses} taskCategories={taskCategories} onSelectedStatusesChange={handleStatusChange} onSelectedCategoriesChange={handleCategoryChange}></ProjectTaskFilter> 
+      </Flex>
+      <Flex justifyContent="space-between">
+        <Checkbox isChecked={selectAll} isIndeterminate={!selectAll && selectedTasks.size > 0} onChange={handleSelectAllChange}>
+          <Text fontSize="sm">Selected Tasks</Text>
+        </Checkbox>
         <Text fontSize="sm" color="gray.500">({sortedTasks.length})</Text>
       </Flex>
       {sortedTasks.map((task) => (
