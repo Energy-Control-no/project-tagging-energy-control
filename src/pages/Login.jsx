@@ -42,7 +42,9 @@ const Login = () => {
         <FormLabel>Password</FormLabel>
         <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </FormControl>
-      <Button mt={4} onClick={handleLogin}>Login</Button>
+      <Button mt={4} onClick={handleLogin}>
+        Login
+      </Button>
     </Box>
   );
 };
