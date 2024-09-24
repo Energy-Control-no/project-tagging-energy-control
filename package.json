@@ -35,8 +35,5 @@
         "react-icons": "^4.12.0",
         "react-router-dom": "^6.23.0",
         "toml": "^3.0.0"
-    },
-    "prettier": {
-        "printWidth": 99999999
     }
 }

@@ -7,3 +7,4 @@ node_modules
 .temp
 .env
 supabase/functions/.env
+deno.lock

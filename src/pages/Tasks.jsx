@@ -3,6 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { Flex, Button, Box, Heading, Alert, AlertIcon, Text, IconButton, Select } from "@chakra-ui/react";
 import { FaPrint, FaHashtag, FaSlash, FaAngleDown, FaAngleUp } from "react-icons/fa";
 import ProjectTaskList from "./ProjectTaskList.jsx";
+import { useAuth } from "../hooks/auth.jsx";
 
 const Tasks = () => {
   const { projectId } = useParams();
@@ -22,7 +23,7 @@ const Tasks = () => {
     return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
-
+  const { session } = useAuth();
   // Parse the URL query parameters
   const queryParams = new URLSearchParams(location.search);
   const projectName = queryParams.get("name"); // Assuming 'name' is the query parameter
@@ -47,11 +48,15 @@ const Tasks = () => {
       const fetchTasks = async () => {
         setIsLoading(true);
         setError(null);
-        const url = new URL("https://rykjmxrsxfstlagfrfnr.supabase.co/functions/v1/get_fieldwire_tasks");
+        const url = new URL(`${process.env.SUPABASE_URL}/functions/v1/get_fieldwire_tasks`);
         url.searchParams.append("project_id", projectId);
 
         try {
-          const response = await fetch(url);
+          const response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
           const data = await response.json();
           if (data.tasks) {
             setTasks(data.tasks);
