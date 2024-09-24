@@ -19,13 +19,6 @@ Deno.serve(async (req: Request) => {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
-  const isAuthenticated = await verifyUserAuth(req)
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers,
-    })
-  }
   // Handle preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: headers });
@@ -33,6 +26,14 @@ Deno.serve(async (req: Request) => {
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: headers });
+  }
+
+  const isAuthenticated = await verifyUserAuth(req);
+  if (!isAuthenticated) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers,
+    });
   }
 
   const authHeader = req.headers.get("Authorization")!;
@@ -43,17 +44,20 @@ Deno.serve(async (req: Request) => {
     const projectData: ProjectData = await req.json();
 
     // Insert the data into the 'project' table
-    const { data, error } = await supabaseClient.from("project").upsert([
+    const { data, error } = await supabaseClient.from("project").upsert(
+      [
+        {
+          fw_id: projectData.fw_id,
+          at_client_id: projectData.at_client_id,
+          at_client_secret: projectData.at_client_secret,
+          at_accountId: projectData.at_accountId,
+          at_locationId: projectData.at_locationId,
+        },
+      ],
       {
-        fw_id: projectData.fw_id,
-        at_client_id: projectData.at_client_id,
-        at_client_secret: projectData.at_client_secret,
-        at_accountId: projectData.at_accountId,
-        at_locationId: projectData.at_locationId,
-      },
-    ], {
-      onConflict: "fw_id" // Specify the conflict target column, which is the primary key
-    });
+        onConflict: "fw_id", // Specify the conflict target column, which is the primary key
+      }
+    );
 
     // Check for errors during the insert operation
     if (error) {

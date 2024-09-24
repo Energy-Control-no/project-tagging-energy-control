@@ -6,15 +6,16 @@ const getAirthingsLocations = async (accessToken: string, accountId: string) => 
     const encodedAccountId = encodeURIComponent(accountId);
     const url = `https://ext-api.airthings.com/v1/locations?accountId=${encodedAccountId}`;
     const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return response.json();
-} catch (error) {
+  } catch (error) {
     throw new Error(`Failed to fetch locations for account ${accountId}, ${error}`);
-}}
+  }
+};
 
 Deno.serve(async (req: Request) => {
   const headers = new Headers({
@@ -23,13 +24,7 @@ Deno.serve(async (req: Request) => {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
-  const isAuthenticated = await verifyUserAuth(req)
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers,
-    })
-  }
+
   try {
     if (req.method === "OPTIONS") {
       // Handle CORS preflight request
@@ -43,15 +38,23 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const isAuthenticated = await verifyUserAuth(req);
+    if (!isAuthenticated) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers,
+      });
+    }
+
     const url = new URL(req.url); // Extract query parameters
-    const client_id = url.searchParams.get('client_id');
-    const client_secret = url.searchParams.get('client_secret');
-    const account_id = url.searchParams.get('account_id');
+    const client_id = url.searchParams.get("client_id");
+    const client_secret = url.searchParams.get("client_secret");
+    const account_id = url.searchParams.get("account_id");
 
     if (!client_id || !client_secret || !account_id) {
-      return new Response(JSON.stringify({ error: 'Airthings client_id, client_secret and account_id are required' }), {
+      return new Response(JSON.stringify({ error: "Airthings client_id, client_secret and account_id are required" }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
 

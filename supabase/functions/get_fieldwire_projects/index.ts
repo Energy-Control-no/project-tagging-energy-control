@@ -2,8 +2,7 @@ import { verifyUserAuth } from "../_shared/auth_utils.ts";
 import { generateFieldwireToken } from "../_shared/fieldwire_api.ts";
 
 async function getFieldwireProjects(token: string) {
-  const projectsUrl =
-    "https://client-api.us.fieldwire.com/api/v3/account/projects";
+  const projectsUrl = "https://client-api.us.fieldwire.com/api/v3/account/projects";
   const options = {
     method: "GET",
     headers: {
@@ -29,13 +28,6 @@ Deno.serve(async (req) => {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
-  const isAuthenticated = await verifyUserAuth(req)
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers,
-    })
-  }
   try {
     if (req.method === "OPTIONS") {
       // Handle CORS preflight request
@@ -49,11 +41,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    const isAuthenticated = await verifyUserAuth(req);
+    if (!isAuthenticated) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers,
+      });
+    }
     const token = await generateFieldwireToken();
     const projects = await getFieldwireProjects(token);
     return new Response(JSON.stringify({ projects: projects }), {
       status: 200,
-      headers
+      headers,
     });
   } catch (error) {
     console.error("Error:", error);

@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import airthingsAuth from "../_shared/airthings_auth.ts";
 import { verifyUserAuth } from "../_shared/auth_utils.ts";
@@ -8,26 +7,28 @@ const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const headers = new Headers({
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*", // Adjust in production
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
-  const isAuthenticated = await verifyUserAuth(req)
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers,
-    })
-  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers });
   }
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
+  }
+
+  const isAuthenticated = await verifyUserAuth(req);
+  if (!isAuthenticated) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers,
+    });
   }
 
   try {
@@ -80,30 +81,27 @@ serve(async (req) => {
     console.log("airthingsResponse.data", airthingsResponse.data);
     console.log("airthingsResponse.ok", airthingsResponse.ok);
 
-
     if (!airthingsResponse.ok) {
       throw new Error("Failed to post device information to Airthings API");
     }
     console.log("Inserting device data into Supabase...");
     const airthingsData = await airthingsResponse.json();
-       // Insert device data into Supabase 'devices' table
-       const { insertData, insertError } = await supabase
-       .from('devices')
-       .insert([
-         {
-           fw_id: fw_id,
-           created_at: new Date().toISOString(),
-           fw_task_id: fw_task_id,
-           at_serialNumber: deviceInfo.serialNumber,
-           at_deviceName: deviceInfo.deviceName
-         }
-       ]);
-       console.log("insertData", insertData);
-       console.log("insertError", insertError);
- 
-     if (insertError) {
-       throw new Error(`Failed to insert device data into Supabase: ${insertError.message}`);
-     }
+    // Insert device data into Supabase 'devices' table
+    const { insertData, insertError } = await supabase.from("devices").insert([
+      {
+        fw_id: fw_id,
+        created_at: new Date().toISOString(),
+        fw_task_id: fw_task_id,
+        at_serialNumber: deviceInfo.serialNumber,
+        at_deviceName: deviceInfo.deviceName,
+      },
+    ]);
+    console.log("insertData", insertData);
+    console.log("insertError", insertError);
+
+    if (insertError) {
+      throw new Error(`Failed to insert device data into Supabase: ${insertError.message}`);
+    }
 
     return new Response(JSON.stringify({ message: "Device processed successfully", airthingsData }), { headers });
   } catch (err) {

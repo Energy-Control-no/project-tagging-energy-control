@@ -105,13 +105,7 @@ Deno.serve(async (req) => {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
-  const isAuthenticated = await verifyUserAuth(req);
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), {
-      status: 403,
-      headers,
-    });
-  }
+
   try {
     if (req.method === "OPTIONS") {
       // Handle CORS preflight request
@@ -121,6 +115,14 @@ Deno.serve(async (req) => {
     if (req.method !== "GET") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
+        headers,
+      });
+    }
+
+    const isAuthenticated = await verifyUserAuth(req);
+    if (!isAuthenticated) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
         headers,
       });
     }

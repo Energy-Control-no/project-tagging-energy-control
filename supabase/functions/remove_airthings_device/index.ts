@@ -13,19 +13,21 @@ Deno.serve(async (req) => {
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
-  const isAuthenticated = await verifyUserAuth(req)
-  if (!isAuthenticated) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers,
-    })
-  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers });
   }
 
   if (req.method !== "DELETE") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
+  }
+
+  const isAuthenticated = await verifyUserAuth(req);
+  if (!isAuthenticated) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers,
+    });
   }
 
   try {
@@ -41,10 +43,7 @@ Deno.serve(async (req) => {
     }
 
     // Delete device data from Supabase 'devices' table
-    const { data: deleteData, error: deleteError } = await supabase
-      .from('devices')
-      .delete()
-      .match({ fw_id: fw_id, at_serialNumber: deviceInfo.serialNumber });
+    const { data: deleteData, error: deleteError } = await supabase.from("devices").delete().match({ fw_id: fw_id, at_serialNumber: deviceInfo.serialNumber });
 
     if (deleteError) {
       throw new Error(`Failed to delete device data from Supabase: ${deleteError.message}`);
