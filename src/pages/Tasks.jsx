@@ -14,11 +14,11 @@ const Tasks = () => {
   const [lastFetchedId, setLastFetchedId] = useState(null);
   const [showPrintingSection, setShowPrintingSection] = useState(true);
   const [isHashSelected, setIsHashSelected] = useState(() => {
-    const savedHashField = localStorage.getItem("savedHashField-"+projectId); // Read from local storage or use default value
+    const savedHashField = localStorage.getItem("savedHashField-" + projectId); // Read from local storage or use default value
     return savedHashField ? JSON.parse(savedHashField) : true;
   });
   const [selectedFields, setSelectedFields] = useState(() => {
-    const savedFields = localStorage.getItem("selectedFields-"+projectId); // Read from local storage or use default fields
+    const savedFields = localStorage.getItem("selectedFields-" + projectId); // Read from local storage or use default fields
     return savedFields ? JSON.parse(savedFields) : ["sequence_number", "team_handle", "name", "team_name"];
   });
   const [taskFields, setTaskFields] = useState(["sequence_number", "name", "created_at"]);
@@ -33,12 +33,12 @@ const Tasks = () => {
 
   useEffect(() => {
     // Save isHashSelected to local storage whenever it changes
-    localStorage.setItem("savedHashField-"+projectId, JSON.stringify(isHashSelected));
+    localStorage.setItem("savedHashField-" + projectId, JSON.stringify(isHashSelected));
   }, [isHashSelected]);
 
   useEffect(() => {
     // Save selectedFields to local storage whenever it changes
-    localStorage.setItem("selectedFields-"+projectId, JSON.stringify(selectedFields));
+    localStorage.setItem("selectedFields-" + projectId, JSON.stringify(selectedFields));
   }, [selectedFields]);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ const Tasks = () => {
 
       fetchTasks();
     }
-  }, [projectId]); 
+  }, [projectId]);
 
   const handleFieldChange = (index, event) => {
     const newSelectedFields = [...selectedFields];
@@ -113,43 +113,50 @@ const Tasks = () => {
     downloadCSV("tasks.csv", csvData);
   };
 
-  const flattenDeviceInfoObject = (obj, keys, prefix = '') => {
-      return keys.reduce((acc, k) => {
-        const pre = prefix + "_" + k;
-        if (obj === null || obj === undefined) {
-          acc[pre] = '';
-          return acc;
-        } else {
-          acc[pre] = obj[k] || '';
-          return acc;
-        }
-      }, {});
-  }
+  const flattenDeviceInfoObject = (obj, keys, prefix = "") => {
+    return keys.reduce((acc, k) => {
+      const pre = prefix + "_" + k;
+      if (obj === null || obj === undefined) {
+        acc[pre] = "";
+        return acc;
+      } else {
+        acc[pre] = obj[k] || "";
+        return acc;
+      }
+    }, {});
+  };
 
   const exportAllToCSV = () => {
     const tasksToExport = tasks.filter((task) => selectedTasks.has(task.id));
     const deviceInfoKeys = ["at_deviceName", "at_serialNumber", "created_at", "fw_id", "fw_task_id"];
-    const flattenedTasks = tasksToExport.map(task => {
+    const flattenedTasks = tasksToExport.map((task) => {
       const flattenedDevice = flattenDeviceInfoObject(task.deviceInfo, deviceInfoKeys, "deviceInfo");
       return { ...task, ...flattenedDevice };
     });
 
     const taskKeys = Object.keys(flattenedTasks[0]);
     const csvHeader = [...taskKeys, "component_label"].join(",") + "\n";
-    const csvContent = flattenedTasks.map((task) => {
-      const taskValues = taskKeys.map((key) => task[key]);
-      const taskLabel = formatTaskDisplay(task);
-      return [...taskValues, taskLabel].join(",");
-    }).join("\n");
+    const csvContent = flattenedTasks
+      .map((task) => {
+        const taskValues = taskKeys.map((key) => {
+          const value = task[key] || "";
+          const valueStr = value.toString();
+          console.log(valueStr);
+          return valueStr.replace(/,/g, ";");
+        });
+        const taskLabel = formatTaskDisplay(task);
+        return [...taskValues, taskLabel].join(",");
+      })
+      .join("\n");
     const csvData = csvHeader + csvContent;
-  
+
     downloadCSV("all_tasks.csv", csvData);
   };
 
   const exportRoomsToCSV = () => {
     const tasksToExport = tasks.filter((task) => selectedTasks.has(task.id));
     const roomMap = new Map();
-    tasksToExport.forEach(task => {
+    tasksToExport.forEach((task) => {
       const room = task.name; // Using task.name as the room identifier
       const serialNumber = task.deviceInfo?.at_serialNumber;
       if (room && serialNumber) {
@@ -159,13 +166,15 @@ const Tasks = () => {
         roomMap.get(room).push(serialNumber);
       }
     });
-  
+
     const csvHeader = "Room;Serial Numbers\n";
-    const csvContent = Array.from(roomMap).map(([room, serialNumbers]) => {
-      return `${room};${serialNumbers.join(",")}`;
-    }).join("\n");
+    const csvContent = Array.from(roomMap)
+      .map(([room, serialNumbers]) => {
+        return `${room};${serialNumbers.join(",")}`;
+      })
+      .join("\n");
     const csvData = csvHeader + csvContent;
-  
+
     downloadCSV("rooms_serialnumbers.csv", csvData);
   };
 
@@ -176,7 +185,7 @@ const Tasks = () => {
 
     // Map over selectedFields and safely access each field in the task, providing a fallback if the field is undefined or null.
     const taskString = selectedFields.map((field) => task[field] || "N/A").join(" - ");
-  
+
     // If isHashSelected is true, add "#" at the beginning of the string
     return isHashSelected ? `#${taskString}` : taskString;
   };
@@ -201,14 +210,14 @@ const Tasks = () => {
       </Heading>
       <Flex alignItems="center" cursor="pointer" onClick={togglePrintingSection}>
         <Text size="md">Task Options</Text>
-        {showPrintingSection ? <FaAngleUp color="grey"/> : <FaAngleDown color="grey"/>}
+        {showPrintingSection ? <FaAngleUp color="grey" /> : <FaAngleDown color="grey" />}
       </Flex>
       {showPrintingSection && (
         <Box mb={6} p={4} border="1px solid #e2e8f0">
           <Box>
             <Flex direction="row" flexWrap="wrap" mb={4}>
               <Flex alignItems="center">
-                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick}/>
+                <IconButton aria-label="toggle hash" icon={isHashSelected ? <FaHashtag /> : <FaSlash />} size="sm" variant="outline" colorScheme={isHashSelected ? "blue" : "gray"} opacity={isHashSelected ? 1 : 0.3} onClick={handleHashClick} />
               </Flex>
               {selectedFields.map((field, index) => (
                 <>
