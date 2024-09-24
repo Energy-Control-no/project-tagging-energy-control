@@ -141,7 +141,6 @@ const Tasks = () => {
         const taskValues = taskKeys.map((key) => {
           const value = task[key] || "";
           const valueStr = value.toString();
-          console.log(valueStr);
           return valueStr.replace(/,/g, ";");
         });
         const taskLabel = formatTaskDisplay(task);

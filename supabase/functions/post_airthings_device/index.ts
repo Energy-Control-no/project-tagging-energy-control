@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import airthingsAuth from "../_shared/airthings_auth.ts";
+import { verifyUserAuth } from "../_shared/auth_utils.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -14,7 +15,13 @@ serve(async (req) => {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
-
+  const isAuthenticated = await verifyUserAuth(req)
+  if (!isAuthenticated) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers,
+    })
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { headers });
   }

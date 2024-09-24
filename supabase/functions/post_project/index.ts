@@ -1,5 +1,6 @@
 // Import the necessary module for Supabase client
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyUserAuth } from "../_shared/auth_utils.ts";
 
 // Define the type for the incoming project data
 interface ProjectData {
@@ -18,6 +19,13 @@ Deno.serve(async (req: Request) => {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
   });
+  const isAuthenticated = await verifyUserAuth(req)
+  if (!isAuthenticated) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers,
+    })
+  }
   // Handle preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: headers });

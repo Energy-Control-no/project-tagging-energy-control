@@ -1,3 +1,4 @@
+import { verifyUserAuth } from '../_shared/auth_utils.ts';
 import { generateFieldwireToken } from '../_shared/fieldwire_api.ts';
 
 async function fetchFieldwireProjectDetails(token: string, project_id: string) {
@@ -26,6 +27,13 @@ Deno.serve(async (req) => {
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
       });
+      const isAuthenticated = await verifyUserAuth(req)
+      if (!isAuthenticated) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers,
+        })
+      }
       try {
         if (req.method === "OPTIONS") {
           // Handle CORS preflight request
